@@ -1,7 +1,10 @@
 import pygame
 from config import hexSize, hexWidthRatio, hexHeightRatio, numberTileColor, uiScale, deepSea
 
+# Module for UI components and hex rendering
+
 class uiRect:
+    """UI rectangle component with optional text and scaling support"""
     def __init__(self, x, y, width, height, color, text=None, fontSize=0, scalable=(True, "center"), alpha=None, borderRadius=0):
         self.x = x
         self.y = y
@@ -17,6 +20,7 @@ class uiRect:
         self.borderRadius = borderRadius
 
     def draw(self, screen):
+        """Draw the UI rectangle with optional transparency and text"""
         # Create local copies to avoid mutating the original
         x, y, width, height = self.x, self.y, self.width, self.height
         if self.scalable[0]:
@@ -43,6 +47,7 @@ class uiRect:
             screen.blit(text, textRect)
 
     def isClicked(self, mousePos):
+        """Check if the given mouse position is within this rectangle"""
         # Create local copies to avoid mutating the original
         x, y, width, height = self.x, self.y, self.width, self.height
         if self.scalable[0]:
@@ -63,6 +68,7 @@ class uiRect:
         return False
 
 class hex:
+    """Hexagonal tile class for rendering game board tiles"""
     def __init__(self, x, y, resource=deepSea, number=None):
         self.x = x
         self.y = y
@@ -70,6 +76,8 @@ class hex:
         self.resource = resource
     
     def draw(self, screen, gamePos, gameScale, numberSize=None, alpha=None):
+        """Draw the hex tile with optional transparency and number token"""
+        # transparency is only used for hovering over tiles, which is currently removed
 
         # Compute the on-screen size of a hex tile after applying global scaling
         shapeSize = hexSize * gameScale

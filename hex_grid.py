@@ -2,6 +2,8 @@ import random, math
 from config import desert, colorList, numberList, noNumberTiles, fog
 from ui import hex
 
+# Module for generating hexagonal grid layouts and tile configurations
+
 def hexRing(center, radius):
     """
     Return the coordinates of every hex cell forming a ring at a given

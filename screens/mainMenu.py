@@ -1,8 +1,9 @@
 from screens import Screen
 from ui import uiRect
-import pygame
+import pygame, json
 
 class MainMenu(Screen):
+    """Main menu screen with game options"""
     def __init__(self, screenManager, screen): # Assets, fonts, static button positions, things that never change
         super().__init__(screenManager, screen)
         # Only setup things that don't depend on screen size here
@@ -11,18 +12,25 @@ class MainMenu(Screen):
         super().OnEnter()
         # Recalculate buttons with current screen size
         self.newButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*1/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "New Game", self.fontSize, (True, "center"), borderRadius=10)
-        self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*2/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Continue Game", self.fontSize, (True, "center"), borderRadius=10)
-        self.joinButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Join Game", self.fontSize, (True, "center"), borderRadius=10)
-        self.settingsButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Settings", self.fontSize, (True, "center"), borderRadius=10)
-        self.statisticsButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Statistics", self.fontSize, (True, "center"), borderRadius=10)
-        self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*6/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Quit Game", self.fontSize, (True, "center"), borderRadius=10)
-        self.tutorialButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*7/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Tutorial", self.fontSize, (True, "center"), borderRadius=10)
+        # Check if save file exists to enable/disable continue button
+        try:
+            with open("save.json", "r") as f:
+                content = json.load(f)
+            self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*2/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
+        except FileNotFoundError:
+            self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*2/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
+        self.joinButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Join", self.fontSize, (True, "center"), borderRadius=10)
+        self.settingsButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Settings", self.fontSize, (True, "center"), borderRadius=10)
+        self.statisticsButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Statistics", self.fontSize, (True, "center"), borderRadius=10)
+        self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*6/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
+        self.tutorialButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*7/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Tutorial", self.fontSize, (True, "center"), borderRadius=10)
 
 
     def OnExit(self):
         pass # Likely nothing here
 
     def Update(self, dt):
+        """Handle input events and return screen navigation commands"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return "quit"
@@ -50,6 +58,7 @@ class MainMenu(Screen):
                         return "tutorial"
 
     def Draw(self, screen):
+        """Draw the main menu screen"""
         screen.fill(self.background)
         self.newButton.draw(screen)
         self.continueButton.draw(screen)
