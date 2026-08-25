@@ -23,6 +23,8 @@ selectorColor, selectorAlpha = (255, 255, 255), 85  # tile selection highlight (
 numberTileColor = (212, 205, 142)              # background color for number tokens
 uiScale = 1.0                                  # UI scale factor
 pauseAlpha = 128                               # transparency for pause overlay (out of 255)
+diceRedColor = (193, 33, 39)                   # catan red color
+diceYellowColor = (254, 202, 10)               # catan yellow color
 
 # --- Resource/tile colors ---
 desert = (181, 174, 112)

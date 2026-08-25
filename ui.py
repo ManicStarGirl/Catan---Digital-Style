@@ -5,7 +5,7 @@ from config import hexSize, hexWidthRatio, hexHeightRatio, numberTileColor, uiSc
 
 class uiRect:
     """UI rectangle component with optional text and scaling support"""
-    def __init__(self, x, y, width, height, color, text=None, fontSize=0, scalable=(True, "center"), alpha=None, borderRadius=0):
+    def __init__(self, x, y, width, height, color, text=None, fontSize=0, scalable=(True, "center"), alpha=None, borderRadius=0, thickness=0):
         self.x = x
         self.y = y
         self.width = width
@@ -18,6 +18,7 @@ class uiRect:
         self.font = pygame.font.Font('assets/fonts/MinionPro-BoldCn.otf', round(fontSize*uiScale))
         self.textColor = (0, 0, 0)
         self.borderRadius = borderRadius
+        self.thickness = thickness
 
     def draw(self, screen):
         """Draw the UI rectangle with optional transparency and text"""
@@ -37,10 +38,10 @@ class uiRect:
             width *= uiScale
         if self.alpha is not None:
             alphaSurface = pygame.Surface((width, height), pygame.SRCALPHA)
-            pygame.draw.rect(alphaSurface, self.color + (self.alpha,), (0, 0, width, height), border_radius=self.borderRadius)
+            pygame.draw.rect(alphaSurface, self.color + (self.alpha,), (0, 0, width, height), border_radius=self.borderRadius, width=self.thickness)
             screen.blit(alphaSurface, (x, y))
         else:
-            pygame.draw.rect(screen, self.color, (x, y, width, height), border_radius=self.borderRadius)
+            pygame.draw.rect(screen, self.color, (x, y, width, height), border_radius=self.borderRadius, width=self.thickness)
         if self.text != None:
             text = self.font.render(self.text, True, self.textColor)
             textRect = text.get_rect(center=(self.x + self.width/2, self.y + self.height/2))

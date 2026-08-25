@@ -29,7 +29,7 @@ class MainMenu(Screen):
     def OnExit(self):
         pass # Likely nothing here
 
-    def Update(self, dt):
+    def Update(self, dt, currentTime):
         """Handle input events and return screen navigation commands"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

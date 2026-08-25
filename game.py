@@ -58,9 +58,10 @@ fullscreen = True
 while running:
     # Calculate delta time (time since last frame) in seconds
     dt = clock.tick(fpsLimit) / 1000
+    currentTime = pygame.time.get_ticks()
     
     # Update current screen and handle screen switching
-    result = screenManager.current_screen.Update(dt)
+    result = screenManager.current_screen.Update(dt, currentTime)
     if result == "fullscreen":
         # Toggle fullscreen <-> windowed
         if fullscreen:

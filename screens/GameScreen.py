@@ -1,13 +1,13 @@
 from config import (
     numberOfRings, hexSize, gameScale, hexWidthRatio, hexHeightRatio,
     selectorColor, selectorAlpha, zoomFactor, maxZoom, minZoom, textSize,
-    numberSize, pauseAlpha, panSpeed
+    numberSize, pauseAlpha, panSpeed, diceRedColor, diceYellowColor
 )
 from screens import Screen
 from ui import uiRect, hex
 from hex_grid import newTiles
 from coordinates import hexRound, pixelToFractionalHex, getSettlementPositions, getRoadPositions
-import pygame, json, math
+import pygame, json, math, random
 
 class GameScreen(Screen):
     """Main game screen for playing Catan"""
@@ -34,16 +34,25 @@ class GameScreen(Screen):
         self.playerList = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 0, 0), (255, 255, 255)]
         self.currentPlayer = (self.playerList[0], 0)
 
+        self.diceSideLength = self.screen.get_width() / 25
+        self.diceDistance = self.screen.get_width() / 24 - self.diceSideLength / 2
+        self.dicePipSize = self.diceSideLength / 10
+        self.dicePipSpacing = self.diceSideLength / 5
+
         # Recalculate buttons with current screen size
-        self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
-        self.mainMenuButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Main Menu", self.fontSize, (True, "center"), borderRadius=10)
-        self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
-        self.endTurnButton = uiRect(self.screen.get_width()*15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.buttonColor, "End Turn", self.fontSize/2, (True, "center"), borderRadius=5)
+        self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
+        self.mainMenuButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Main Menu", self.fontSize, (True, "center"), borderRadius=10)
+        self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
+        self.endTurnButton = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.buttonColor, "End Turn", self.fontSize/2, (True, "center"), borderRadius=5)
+        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, diceRedColor, scalable=(True, "center"), borderRadius=12)
+        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, diceYellowColor, scalable=(True, "center"), borderRadius=12)
+        self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
 
     def OnExit(self):
         pass # Likely nothing here
 
-    def Update(self, dt):
+    def Update(self, dt, currentTime):
         """Handle game input and update game state"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -83,9 +92,13 @@ class GameScreen(Screen):
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
-                        mouse_pos = pygame.mouse.get_pos()
-                        if self.endTurnButton.isClicked(mouse_pos):
+                        mousePos = pygame.mouse.get_pos()
+                        if self.endTurnButton.isClicked(mousePos):
                             self.currentPlayer = (self.playerList[(self.currentPlayer[1] + 1) % len(self.playerList)], self.currentPlayer[1] + 1)
+                        elif self.redDice.isClicked(mousePos) or self.yellowDice.isClicked(mousePos):
+                            self.isRolling = True
+                            self.rollStartTime = currentTime
+                            self.lastShuffleTime = currentTime
                         # Start a drag: remember the offset between the mouse and gamePos
                         self.mouse_down_pos = event.pos
                         self.offset_x = self.gamePos.x - self.mouse_down_pos[0]
@@ -117,6 +130,20 @@ class GameScreen(Screen):
                             return "quit"
         
         if not self.paused:
+            if self.isRolling:
+                progress = (currentTime - self.rollStartTime) / self.ROLL_DURATION
+                self.yOffset = math.sin(progress * math.pi * 2 * 4) * 15 # Four complete cycles
+                print("self.yOffset: ", self.yOffset)
+                # Check if rolling duration has expired
+                if currentTime - self.rollStartTime > self.ROLL_DURATION:
+                    self.isRolling = False
+                    self.currentRedValue = random.choice(self.diceList)  # Final landing value
+                    self.currentYellowValue = random.choice(self.diceList)  # Final landing value
+                # Shuffle face values quickly during the roll interval
+                elif currentTime - self.lastShuffleTime > self.SHUFFLE_DELAY:
+                    self.currentRedValue = random.choice([n for n in self.diceList if n != self.currentRedValue])
+                    self.currentYellowValue = random.choice([n for n in self.diceList if n != self.currentYellowValue])
+                    self.lastShuffleTime = currentTime
             # Handle keyboard panning
             keys = pygame.key.get_pressed()
 
@@ -243,6 +270,20 @@ class GameScreen(Screen):
 
         # Draw end turn button
         self.endTurnButton.draw(screen)
+        
+        # Draw dice buttons
+        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, diceRedColor, scalable=(True, "center"), borderRadius=12)
+        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, diceYellowColor, scalable=(True, "center"), borderRadius=12)
+        self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.redDice.draw(screen)
+        self.redDiceBorder.draw(screen)
+        self.yellowDice.draw(screen)
+        self.yellowDiceBorder.draw(screen)
+
+        # draw dice pips
+        self.draw_dice_pips(screen, self.redDice.rect, self.dicePipSpacing, self.dicePipSize, self.currentRedValue, diceYellowColor)
+        self.draw_dice_pips(screen, self.yellowDice.rect, self.dicePipSpacing, self.dicePipSize, self.currentYellowValue, diceRedColor)
 
         if self.paused:
             # Draw pause overlay
@@ -264,3 +305,36 @@ class GameScreen(Screen):
         }
         with open("save.json", "w") as f:
             json.dump(save_data, f)
+    
+    def draw_dice_pips(self, screen, diceRect, pipSpacing, pipSize, value, pipColor, useHexForOne=True):
+        """Draw pips on a dice based on its value"""
+
+        DICE_PIP_POSITIONS = {
+            1: [(0, 0)],
+            2: [(-1, -1), (1, 1)],
+            3: [(-1, -1), (0, 0), (1, 1)],
+            4: [(-1, -1), (1, -1), (-1, 1), (1, 1)],
+            5: [(-1, -1), (1, -1), (0, 0), (-1, 1), (1, 1)],
+            6: [(-1, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (1, 1)]
+        }
+
+        center_x, center_y = diceRect.center
+        positions = DICE_PIP_POSITIONS[value]
+        
+        for i, (offset_x, offset_y) in enumerate(positions):
+            pip_center = (
+                center_x + offset_x * pipSpacing,
+                center_y + offset_y * pipSpacing
+            )
+            # Use hexagon for single pip (the 1), circles for everything else
+            if useHexForOne and value == 1:
+                points = []
+                for i in range(6):
+                    angle = math.radians(60 * i + 30)
+                    x = pip_center[0] + pipSize * 3/2 * math.cos(angle)
+                    y = pip_center[1] + pipSize * 3/2 * math.sin(angle)
+                    points.append((x, y))
+                pygame.draw.polygon(screen, pipColor, points)
+            else:
+                pygame.draw.circle(screen, pipColor, pip_center, pipSize)
+            

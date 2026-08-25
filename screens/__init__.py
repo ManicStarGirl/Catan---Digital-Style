@@ -1,4 +1,5 @@
 from config import deepSea
+import random
 
 class Screen:
     """Base class for all game screens"""
@@ -6,6 +7,17 @@ class Screen:
         self.screenManager = screenManager
         self.screen = screen
         self.background = deepSea
+        
+        # dice animation variables
+        self.diceList = [1, 2, 3, 4, 5, 6]
+        self.isRolling = False
+        self.rollStartTime = 0
+        self.ROLL_DURATION = 880  # Duration of the roll in milliseconds
+        self.SHUFFLE_DELAY = 80    # Milliseconds between number switches during animation
+        self.lastShuffleTime = 0
+        self.yOffset = 0
+        self.currentRedValue = random.choice(self.diceList)
+        self.currentYellowValue = random.choice(self.diceList)
     
     def OnEnter(self):
         """Called when screen is entered - sets up common UI elements"""
@@ -21,7 +33,7 @@ class Screen:
         """Called when screen is exited - cleanup can be done here"""
         pass
     
-    def Update(self, dt):
+    def Update(self, dt, currentTime):
         """Update screen logic - called every frame with delta time"""
         pass
     
