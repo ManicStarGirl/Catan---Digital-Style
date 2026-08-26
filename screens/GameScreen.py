@@ -44,10 +44,10 @@ class GameScreen(Screen):
         self.mainMenuButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Main Menu", self.fontSize, (True, "center"), borderRadius=10)
         self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
         self.endTurnButton = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.buttonColor, "End Turn", self.fontSize/2, (True, "center"), borderRadius=5)
-        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, diceRedColor, scalable=(True, "center"), borderRadius=12)
-        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, diceYellowColor, scalable=(True, "center"), borderRadius=12)
-        self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
-        self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, diceRedColor, scalable=(True, "center"), borderRadius=12)
+        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, diceYellowColor, scalable=(True, "center"), borderRadius=12)
+        self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
 
     def OnExit(self):
         pass # Likely nothing here
@@ -93,18 +93,54 @@ class GameScreen(Screen):
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         mousePos = pygame.mouse.get_pos()
+                        mouseWorldPos = (pygame.Vector2(mousePos) - self.gamePos) / self.gameScale
+                        closestCorner, closestRoad = self.findClosestIntersection(mouseWorldPos)
                         if self.endTurnButton.isClicked(mousePos):
                             self.currentPlayer = (self.playerList[(self.currentPlayer[1] + 1) % len(self.playerList)], self.currentPlayer[1] + 1)
                         elif self.redDice.isClicked(mousePos) or self.yellowDice.isClicked(mousePos):
                             self.isRolling = True
                             self.rollStartTime = currentTime
                             self.lastShuffleTime = currentTime
+                            self.redShakeOffset = random.randint(10, 20)
+                            self.yellowShakeOffset = random.randint(10, 20)
+                            self.redNumShakes = random.randint(2, 5)
+                            self.yellowNumShakes = random.randint(2, 5)
+                        elif closestCorner:
+                            # Find and update the settlement position
+                            for pos in self.settlements:
+                                if pos[0] * hexSize * hexWidthRatio == closestCorner[0] and pos[1] * hexSize * hexHeightRatio == closestCorner[1]:
+                                    pos[2] = self.currentPlayer[0]  # Replace None with player color
+                                    break
+                        elif closestRoad:
+                            # Find and update the road position
+                            for pos in self.roads:
+                                if pos[0] == closestRoad[0] and pos[1] == closestRoad[1]:
+                                    pos[3] = self.currentPlayer[0]  # Replace None with player color
+                                    break
+                            
                         # Start a drag: remember the offset between the mouse and gamePos
                         self.mouse_down_pos = event.pos
                         self.offset_x = self.gamePos.x - self.mouse_down_pos[0]
                         self.offset_y = self.gamePos.y - self.mouse_down_pos[1]
                         self.dragging = True
+                    elif event.button == 3:  # Right click
+                        mousePos = pygame.mouse.get_pos()
+                        mouseWorldPos = (pygame.Vector2(mousePos) - self.gamePos) / self.gameScale
+                        closestCorner, closestRoad = self.findClosestIntersection(mouseWorldPos)
+                        if closestCorner:
+                            # Find and update the settlement position
+                            for pos in self.settlements:
+                                if pos[0] * hexSize * hexWidthRatio == closestCorner[0] and pos[1] * hexSize * hexHeightRatio == closestCorner[1]:
+                                    pos[2] = None  # Replace player color with None
+                                    break
+                        elif closestRoad:
+                            # Find and update the road position
+                            for pos in self.roads:
+                                if pos[0] == closestRoad[0] and pos[1] == closestRoad[1]:
+                                    pos[3] = None  # Replace player color with None
+                                    break
                         
+
                 elif event.type == pygame.MOUSEMOTION:
                     if self.dragging:
                         mouse_x, mouse_y = event.pos
@@ -132,8 +168,8 @@ class GameScreen(Screen):
         if not self.paused:
             if self.isRolling:
                 progress = (currentTime - self.rollStartTime) / self.ROLL_DURATION
-                self.yOffset = math.sin(progress * math.pi * 2 * 4) * 15 # Four complete cycles
-                print("self.yOffset: ", self.yOffset)
+                self.redYOffset = math.sin(progress * math.pi * 2 * self.redNumShakes) * self.redShakeOffset
+                self.yellowYOffset = math.sin(progress * math.pi * 2 * self.yellowNumShakes) * self.yellowShakeOffset
                 # Check if rolling duration has expired
                 if currentTime - self.rollStartTime > self.ROLL_DURATION:
                     self.isRolling = False
@@ -184,27 +220,63 @@ class GameScreen(Screen):
             if min_x <= tile_x <= max_x and min_y <= tile_y <= max_y:
                 tile.draw(screen, self.gamePos, self.gameScale, self.numberSize)
 
+        for settlement in self.settlements:
+            if settlement[2] is not None:
+                cornerWorld = pygame.Vector2(
+                    settlement[0] * hexSize * hexWidthRatio,
+                    settlement[1] * hexSize * hexHeightRatio
+                )
+                screenPos = cornerWorld * self.gameScale + self.gamePos
+                squareSize = 12 * self.gameScale
+                rect = pygame.Rect(
+                    screenPos.x - squareSize/2,
+                    screenPos.y - squareSize/2,
+                    squareSize,
+                    squareSize
+                )
+                pygame.draw.rect(screen, settlement[2], rect)
+        for road in self.roads:
+            if road[3] is not None:
+                cornerWorld = pygame.Vector2(
+                    road[0] * hexSize * hexWidthRatio,
+                    road[1] * hexSize * hexHeightRatio
+                )
+                screenPos = cornerWorld * self.gameScale + self.gamePos
+                roadLength = 20 * self.gameScale
+                roadWidth = 6 * self.gameScale
+
+                angleRad = math.radians(road[2])
+                
+                # Direction vector along the road
+                dirX = math.cos(angleRad)
+                dirY = math.sin(angleRad)
+                
+                # Perpendicular vector (for width)
+                perpX = -dirY
+                perpY = dirX
+                
+                # Calculate 4 corners
+                corners = [
+                    (screenPos.x - dirX * roadLength/2 + perpX * roadWidth/2,
+                    screenPos.y - dirY * roadLength/2 + perpY * roadWidth/2),
+                    (screenPos.x + dirX * roadLength/2 + perpX * roadWidth/2,
+                    screenPos.y + dirY * roadLength/2 + perpY * roadWidth/2),
+                    (screenPos.x + dirX * roadLength/2 - perpX * roadWidth/2,
+                    screenPos.y + dirY * roadLength/2 - perpY * roadWidth/2),
+                    (screenPos.x - dirX * roadLength/2 - perpX * roadWidth/2,
+                    screenPos.y - dirY * roadLength/2 - perpY * roadWidth/2)
+                ]
+
+                pygame.draw.polygon(screen, road[3], corners)
+
         # uiBase = uiRect(0, screen.get_height()*5/6, screen.get_width(), screen.get_height()/6, (255, 255, 255), scalable=(True, "bottom"))
         # uiBase.draw(screen)
         if not self.paused:
             # Handle placement preview when not paused
             mousePos = pygame.mouse.get_pos()
             mouseWorldPos = (pygame.Vector2(mousePos) - self.gamePos) / self.gameScale
-            closestCorner = None
-            closestRoad = None
-            minDist = float('inf')
+            closestCorner, closestRoad = self.findClosestIntersection(mouseWorldPos)
 
-            # Find closest settlement position to mouse
-            for pos in self.settlements:
-                cornerWorld = pygame.Vector2(
-                    pos[0] * hexSize * hexWidthRatio,
-                    pos[1] * hexSize * hexHeightRatio
-                )
-                screenPos = cornerWorld * self.gameScale + self.gamePos
-                dist = mouseWorldPos.distance_to(cornerWorld)
-                if dist < minDist and dist < hexSize * 0.2:
-                    minDist = dist
-                    closestCorner = cornerWorld
             # Draw settlement preview if close enough
             if closestCorner:
                 screenPos = closestCorner * self.gameScale + self.gamePos
@@ -217,17 +289,6 @@ class GameScreen(Screen):
                 )
                 pygame.draw.rect(screen, self.currentPlayer[0], rect)
 
-            # Find closest road position to mouse
-            for pos in self.roads:
-                roadWorld = pygame.Vector2(
-                    pos[0] * hexSize * hexWidthRatio,
-                    pos[1] * hexSize * hexHeightRatio,
-                )
-                screenPos = roadWorld * self.gameScale + self.gamePos
-                dist = mouseWorldPos.distance_to(roadWorld)
-                if dist < minDist and dist < hexSize * 0.2:
-                    minDist = dist
-                    closestRoad = pos
             # Draw road preview if close enough
             if closestRoad:
                 roadWorld = pygame.Vector2(
@@ -272,10 +333,10 @@ class GameScreen(Screen):
         self.endTurnButton.draw(screen)
         
         # Draw dice buttons
-        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, diceRedColor, scalable=(True, "center"), borderRadius=12)
-        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, diceYellowColor, scalable=(True, "center"), borderRadius=12)
-        self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
-        self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, diceRedColor, scalable=(True, "center"), borderRadius=12)
+        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, diceYellowColor, scalable=(True, "center"), borderRadius=12)
+        self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
         self.redDice.draw(screen)
         self.redDiceBorder.draw(screen)
         self.yellowDice.draw(screen)
@@ -306,7 +367,7 @@ class GameScreen(Screen):
         with open("save.json", "w") as f:
             json.dump(save_data, f)
     
-    def draw_dice_pips(self, screen, diceRect, pipSpacing, pipSize, value, pipColor, useHexForOne=True):
+    def draw_dice_pips(self, screen, diceRect, pipSpacing, pipSize, value, pipColor):
         """Draw pips on a dice based on its value"""
 
         DICE_PIP_POSITIONS = {
@@ -327,7 +388,7 @@ class GameScreen(Screen):
                 center_y + offset_y * pipSpacing
             )
             # Use hexagon for single pip (the 1), circles for everything else
-            if useHexForOne and value == 1:
+            if value == 1:
                 points = []
                 for i in range(6):
                     angle = math.radians(60 * i + 30)
@@ -338,3 +399,29 @@ class GameScreen(Screen):
             else:
                 pygame.draw.circle(screen, pipColor, pip_center, pipSize)
             
+    def findClosestIntersection(self, mouseWorldPos):
+        """Find the closest intersection to the mouse position"""
+        closestCorner = None
+        closestRoad = None
+        minDistance = float("inf")
+
+        for pos in self.settlements:
+            cornerWorld = pygame.Vector2(
+                pos[0] * hexSize * hexWidthRatio,
+                pos[1] * hexSize * hexHeightRatio
+            )
+            dist = mouseWorldPos.distance_to(cornerWorld)
+            if dist < minDistance and dist < hexSize * 0.2:
+                minDistance = dist
+                closestCorner = cornerWorld
+        
+        for pos in self.roads:
+            road_world = pygame.Vector2(
+                pos[0] * hexSize * hexWidthRatio,
+                pos[1] * hexSize * hexHeightRatio
+            )
+            dist = mouseWorldPos.distance_to(road_world)
+            if dist < minDistance and dist < hexSize * 0.2:
+                minDistance = dist
+                closestRoad = pos
+        return closestCorner, closestRoad
