@@ -38,7 +38,10 @@ class ScreenManager:
                 with open("save.json", "r") as f:
                     savedData = json.load(f)
                 tileList = [hex(*t) for t in savedData["tiles"]]
-                self.current_screen = GameScreen(self, screen, tileList)
+                settlements = [[s[0], s[1], tuple(s[2]) if s[2] else None] for s in savedData["settlements"]]
+                roads = [[r[0], r[1], r[2], tuple(r[3]) if r[3] else None] for r in savedData["roads"]]
+                player = (tuple(savedData["currentPlayer"][0]), savedData["currentPlayer"][1])
+                self.current_screen = GameScreen(self, screen, tileList, settlements, roads, player)
                 self.current_screen.OnEnter()
             except FileNotFoundError:
                 pass

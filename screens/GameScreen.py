@@ -11,13 +11,16 @@ import pygame, json, math, random
 
 class GameScreen(Screen):
     """Main game screen for playing Catan"""
-    def __init__(self, screenManager, screen, tileList=None, settlements=None, roads=None): # Assets, fonts, static button positions, things that never change
+    def __init__(self, screenManager, screen, tileList=None, settlements=None, roads=None, currentPlayer=None): # Assets, fonts, static button positions, things that never change
         super().__init__(screenManager, screen)
         # Only setup things that don't depend on screen size here
         # Generate the initial hex map (a spiral/ring-based board of `numberOfRings` rings)
         self.tileList = tileList if tileList is not None else newTiles(numberOfRings)
         self.settlements = settlements if settlements is not None else getSettlementPositions(self.tileList)
         self.roads = roads if roads is not None else getRoadPositions(self.tileList)
+        # List of player colors and current player tracking
+        self.playerList = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 0, 0), (255, 255, 255)]
+        self.currentPlayer = currentPlayer if currentPlayer is not None else (self.playerList[0], 0)
 
     def OnEnter(self): # Reset game state, start animations, recalculate responsive positions
         super().OnEnter()
@@ -30,9 +33,6 @@ class GameScreen(Screen):
         self.offset_y = 0
         self.gameScale = gameScale
         self.numberSize = numberSize
-        # List of player colors and current player tracking
-        self.playerList = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 0, 0), (255, 255, 255)]
-        self.currentPlayer = (self.playerList[0], 0)
 
         self.diceSideLength = self.screen.get_width() / 25
         self.diceDistance = self.screen.get_width() / 24 - self.diceSideLength / 2
@@ -44,9 +44,10 @@ class GameScreen(Screen):
         self.mainMenuButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Main Menu", self.fontSize, (True, "center"), borderRadius=10)
         self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
         self.endTurnButton = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.buttonColor, "End Turn", self.fontSize/2, (True, "center"), borderRadius=5)
+        self.endTurnBorder = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.currentPlayer[0], scalable=(True, "center"), borderRadius=5, thickness=6)
         self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, diceRedColor, scalable=(True, "center"), borderRadius=12)
-        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, diceYellowColor, scalable=(True, "center"), borderRadius=12)
         self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, diceYellowColor, scalable=(True, "center"), borderRadius=12)
         self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
 
     def OnExit(self):
@@ -108,15 +109,17 @@ class GameScreen(Screen):
                         elif closestCorner:
                             # Find and update the settlement position
                             for pos in self.settlements:
-                                if pos[0] * hexSize * hexWidthRatio == closestCorner[0] and pos[1] * hexSize * hexHeightRatio == closestCorner[1]:
-                                    pos[2] = self.currentPlayer[0]  # Replace None with player color
-                                    break
+                                if pos[0] == closestCorner[0] and pos[1] == closestCorner[1]:
+                                    if self.validSettlement(pos):
+                                        pos[2] = self.currentPlayer[0]  # Replace None with player color
+                                        break
                         elif closestRoad:
                             # Find and update the road position
                             for pos in self.roads:
                                 if pos[0] == closestRoad[0] and pos[1] == closestRoad[1]:
-                                    pos[3] = self.currentPlayer[0]  # Replace None with player color
-                                    break
+                                    if pos[3] == None:
+                                        pos[3] = self.currentPlayer[0]  # Replace None with player color
+                                        break
                             
                         # Start a drag: remember the offset between the mouse and gamePos
                         self.mouse_down_pos = event.pos
@@ -130,15 +133,19 @@ class GameScreen(Screen):
                         if closestCorner:
                             # Find and update the settlement position
                             for pos in self.settlements:
-                                if pos[0] * hexSize * hexWidthRatio == closestCorner[0] and pos[1] * hexSize * hexHeightRatio == closestCorner[1]:
-                                    pos[2] = None  # Replace player color with None
-                                    break
+                                if pos[0] == closestCorner[0] and pos[1] == closestCorner[1]:
+                                    if pos[2] == self.currentPlayer[0]:
+                                        pos[2] = None  # Replace player color with None
+                                        break
                         elif closestRoad:
                             # Find and update the road position
                             for pos in self.roads:
+                                print(pos[0] == closestRoad[0] and pos[1] == closestRoad[1], pos, closestRoad)
                                 if pos[0] == closestRoad[0] and pos[1] == closestRoad[1]:
-                                    pos[3] = None  # Replace player color with None
-                                    break
+                                    print(pos[3] == self.currentPlayer[0], pos[3], self.currentPlayer[0])
+                                    if pos[3] == self.currentPlayer[0]:
+                                        pos[3] = None  # Replace player color with None
+                                        break
                         
 
                 elif event.type == pygame.MOUSEMOTION:
@@ -279,15 +286,20 @@ class GameScreen(Screen):
 
             # Draw settlement preview if close enough
             if closestCorner:
-                screenPos = closestCorner * self.gameScale + self.gamePos
-                squareSize = 12 * self.gameScale
-                rect = pygame.Rect(
-                    screenPos.x - squareSize/2,
-                    screenPos.y - squareSize/2,
-                    squareSize,
-                    squareSize
-                )
-                pygame.draw.rect(screen, self.currentPlayer[0], rect)
+                if self.validSettlement(closestCorner):
+                    cornerWorld = pygame.Vector2(
+                        closestCorner[0] * hexSize * hexWidthRatio,
+                        closestCorner[1] * hexSize * hexHeightRatio
+                    )
+                    screenPos = cornerWorld * self.gameScale + self.gamePos
+                    squareSize = 12 * self.gameScale
+                    rect = pygame.Rect(
+                        screenPos.x - squareSize/2,
+                        screenPos.y - squareSize/2,
+                        squareSize,
+                        squareSize
+                    )
+                    pygame.draw.rect(screen, self.currentPlayer[0], rect)
 
             # Draw road preview if close enough
             if closestRoad:
@@ -330,7 +342,9 @@ class GameScreen(Screen):
 
 
         # Draw end turn button
+        self.endTurnBorder = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.currentPlayer[0], scalable=(True, "center"), borderRadius=5, thickness=6)
         self.endTurnButton.draw(screen)
+        self.endTurnBorder.draw(screen)
         
         # Draw dice buttons
         self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, diceRedColor, scalable=(True, "center"), borderRadius=12)
@@ -413,7 +427,7 @@ class GameScreen(Screen):
             dist = mouseWorldPos.distance_to(cornerWorld)
             if dist < minDistance and dist < hexSize * 0.2:
                 minDistance = dist
-                closestCorner = cornerWorld
+                closestCorner = pos
         
         for pos in self.roads:
             road_world = pygame.Vector2(
@@ -425,3 +439,22 @@ class GameScreen(Screen):
                 minDistance = dist
                 closestRoad = pos
         return closestCorner, closestRoad
+
+    def validSettlement(self, position):
+        """Check if a settlement position is valid (not adjacent to existing settlements)"""
+        if position[2] is not None:  # Already has a settlement
+            return False
+        
+        # Check distance to all existing settlements
+        for settlement in self.settlements:
+            if settlement[2] is not None:  # Only check placed settlements
+                # Calculate distance between positions
+                dx = position[0] - settlement[0]
+                dy = position[1] - settlement[1]
+                distance = (dx**2 + dy**2) ** (1/2) # Pythagorean theorem
+                
+                # In Catan, settlements must be at least ~1.33 units apart in this coordinate system
+                if distance < 1.33:
+                    return False
+        
+        return True

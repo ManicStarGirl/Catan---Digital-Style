@@ -97,13 +97,17 @@ def getSettlementPositions(tileList):
     positions = set()
     for tile in tileList:
         for dx, dy in [(1/3, -1), (-1/3, -1), (-2/3, 0), (2/3, 0), (1/3, 1), (-1/3, 1)]:
-            positions.add((tile.x + dx, tile.y + dy, None))
+            x = round(tile.x + dx, 2)
+            y = round(tile.y + dy, 2)
+            positions.add((x, y, None))
     return [list(pos) for pos in positions]
 
 def getRoadPositions(tileList):
     """Calculate all valid road positions (edges) for a given tile list"""
     positions = set()
     for tile in tileList:
-        for dx, dy, angle in [(0, -1, 0), (0.5, -0.5, 60), (0.5, 0.5, 120), (0, 1, 180), (-0.5, 0.5, 240), (-0.5, -0.5, 300)]:
-            positions.add((tile.x + dx, tile.y + dy, angle, None))
+        for dx, dy, angle in [(0, -1, 0), (0.5, -0.5, 60), (0.5, 0.5, 120), (0, 1, 0), (-0.5, 0.5, 60), (-0.5, -0.5, 120)]:
+            x = round(tile.x + dx, 2)
+            y = round(tile.y + dy, 2)
+            positions.add((x, y, angle, None))
     return [list(pos) for pos in positions]

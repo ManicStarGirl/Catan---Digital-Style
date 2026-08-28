@@ -30,9 +30,12 @@ settlement and road placement, and save/load functionality.
   - Drag to pan with mouse
   - Hold Shift for faster panning
 - **Settlement and road placement** with left-click to place and right-click to remove buildings
+  - Settlement placement follows Catan distance rules (minimum spacing between settlements)
+  - Road placement prevents overwriting existing roads
+  - Players can only remove their own buildings
 - **Multi-player turn system** with player color cycling
 - **Animated dice rolling** with red and yellow dice featuring independent randomized bouncing animation and pip display
-- **Save/load game system** for persistent game state
+- **Save/load game system** for persistent game state (tiles, settlements, roads, current player)
 - **Fullscreen toggle** with F11
 - **Pause system** with ESC (includes quit button and main menu navigation)
 - **View culling** for performance (only draws visible hexes)
@@ -71,10 +74,10 @@ python game.py
 | Shift | Hold to pan faster |
 | Mouse wheel | Zoom in/out |
 | Left-click drag | Pan camera |
-| Left-click corner/edge | Place settlement/road |
-| Right-click corner/edge | Remove settlement/road |
+| Left-click corner/edge | Place settlement/road (shows preview for valid positions) |
+| Right-click corner/edge | Remove settlement/road (only your own buildings) |
 | Click dice | Roll dice with animation |
-| End Turn button | Cycle to next player |
+| End Turn button | Cycle to next player (border shows current player color) |
 | F11 | Toggle fullscreen |
 | Escape | Toggle pause / Quit from pause menu |
 
@@ -96,7 +99,8 @@ python game.py
 
 ## Technical Details
 
-- **Coordinate system**: Uses doubled hex coordinates for grid logic, converts to axial for mouse interaction
+- **Coordinate system**: Uses doubled hex coordinates for grid logic, converts to axial for mouse interaction with rounded precision for consistent positioning
+- **Settlement validation**: Enforces Catan spacing rules (1 position of space between settlements) to prevent adjacent settlements
 - **Rendering**: Pointy-topped hexagons with proper aspect ratio (3:2 width, √3/2 height)
 - **Performance**: Implements view culling to avoid drawing off-screen hexes
 - **Frame-rate independence**: Movement uses delta time for consistent speed across framerates
