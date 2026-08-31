@@ -1,5 +1,5 @@
 import pygame
-from config import hexSize, hexWidthRatio, hexHeightRatio, numberTileColor, uiScale, deepSea
+from config import hexSize, hexWidthRatio, hexHeightRatio, settings
 
 # Module for UI components and hex rendering
 
@@ -15,7 +15,7 @@ class uiRect:
         self.alpha = alpha
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
-        self.font = pygame.font.Font('assets/fonts/MinionPro-BoldCn.otf', round(fontSize*uiScale))
+        self.font = pygame.font.Font('assets/fonts/MinionPro-BoldCn.otf', round(fontSize*settings.uiScale))
         self.textColor = (0, 0, 0)
         self.borderRadius = borderRadius
         self.thickness = thickness
@@ -27,15 +27,15 @@ class uiRect:
         if self.scalable[0]:
             anchor = self.scalable[1]
             if anchor == "bottom":
-                y += (height * (1 - uiScale))
+                y += (height * (1 - settings.uiScale))
             if anchor == "left":
-                x += (width * (1 - uiScale))
+                x += (width * (1 - settings.uiScale))
             if anchor == "top" or anchor == "bottom" or anchor == "center":
-                x -= (width * (uiScale - 1) / 2)
+                x -= (width * (settings.uiScale - 1) / 2)
             if anchor == "left" or anchor == "right" or anchor == "center":
-                y -= (height * (uiScale - 1) / 2)
-            height *= uiScale
-            width *= uiScale
+                y -= (height * (settings.uiScale - 1) / 2)
+            height *= settings.uiScale
+            width *= settings.uiScale
         if self.alpha is not None:
             alphaSurface = pygame.Surface((width, height), pygame.SRCALPHA)
             pygame.draw.rect(alphaSurface, self.color + (self.alpha,), (0, 0, width, height), border_radius=self.borderRadius, width=self.thickness)
@@ -54,23 +54,23 @@ class uiRect:
         if self.scalable[0]:
             anchor = self.scalable[1]
             if anchor == "center":
-                x -= (width * (uiScale - 1) / 2)
-                y -= (height * (uiScale - 1) / 2)
+                x -= (width * (settings.uiScale - 1) / 2)
+                y -= (height * (settings.uiScale - 1) / 2)
             if anchor == "bottom":
-                y += (height * (1 - uiScale))
+                y += (height * (1 - settings.uiScale))
             if anchor == "top" or anchor == "bottom" or anchor == "center":
-                height *= uiScale
+                height *= settings.uiScale
             if anchor == "left":
-                x +=(width * (1 - uiScale))
+                x +=(width * (1 - settings.uiScale))
             if anchor == "right" or anchor == "left" or anchor == "center":
-                width *= uiScale
+                width *= settings.uiScale
         if x <= mousePos[0] <= x + width and y <= mousePos[1] <= y + height:
             return True
         return False
 
 class hex:
     """Hexagonal tile class for rendering game board tiles"""
-    def __init__(self, x, y, resource=deepSea, number=None):
+    def __init__(self, x, y, resource=settings.deepSea, number=None):
         self.x = x
         self.y = y
         self.number = number
@@ -130,7 +130,7 @@ class hex:
         if self.number is not None:
             # Draw the token's circular background, centered on the tile.
             if self.number != "?":
-                pygame.draw.circle(screen, numberTileColor, (realX, realY) + gamePos, shapeSize/3)
+                pygame.draw.circle(screen, settings.numberTileColor, (realX, realY) + gamePos, shapeSize/3)
 
             # Color the number text based on how "hot" the roll is: 6 and 8
             # are the most probable non-7 rolls on two dice, so they're

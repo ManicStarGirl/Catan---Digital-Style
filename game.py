@@ -3,6 +3,8 @@ from ui import hex
 from config import fpsLimit
 from screens.mainMenu import MainMenu
 from screens.GameScreen import GameScreen
+from screens.settingsScreen import Settings
+
 # from screens.gameScreen import GameScreen  # when you create it
 
 # ---------------------------------------------------------------------------
@@ -25,15 +27,15 @@ class ScreenManager:
     def __init__(self):
         self.current_screen = None
     
-    def switch_screen(self, screen_name):
+    def switch_screen(self, screenName):
         """Switch to a different screen based on screen_name"""
-        if screen_name == "main_menu":
+        if screenName == "mainMenu":
             self.current_screen = MainMenu(self, screen)
             self.current_screen.OnEnter()
-        elif screen_name == "new":
+        elif screenName == "new":
             self.current_screen = GameScreen(self, screen)
             self.current_screen.OnEnter()
-        elif screen_name == "continue":
+        elif screenName == "continue":
             try:
                 with open("save.json", "r") as f:
                     savedData = json.load(f)
@@ -45,13 +47,16 @@ class ScreenManager:
                 self.current_screen.OnEnter()
             except FileNotFoundError:
                 pass
-        elif screen_name == "quit":
+        elif screenName == "settings":
+            self.current_screen = Settings(self, screen)
+            self.current_screen.OnEnter()
+        elif screenName == "quit":
             return False  # Signal to quit
         return True
 
 # Initialize screen manager and start at main menu
 screenManager = ScreenManager()
-screenManager.switch_screen("main_menu")
+screenManager.switch_screen("mainMenu")
 
 # ---------------------------------------------------------------------------
 # Main loop

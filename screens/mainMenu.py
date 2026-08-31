@@ -11,7 +11,12 @@ class MainMenu(Screen):
     def OnEnter(self): # Reset game state, start animations, recalculate responsive positions
         super().OnEnter()
         # Recalculate buttons with current screen size
-        self.newButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*1/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "New Game", self.fontSize, (True, "center"), borderRadius=10)
+        self.newButton        = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*1/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor,          "New Game",   self.fontSize, (True, "center"), borderRadius=10)
+        self.joinButton       = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Join",       self.fontSize, (True, "center"), borderRadius=10)
+        self.settingsButton   = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor,          "Settings",   self.fontSize, (True, "center"), borderRadius=10)
+        self.statisticsButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Statistics", self.fontSize, (True, "center"), borderRadius=10)
+        self.quitButton       = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*6/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor,          "Quit",       self.fontSize, (True, "center"), borderRadius=10)
+        self.tutorialButton   = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*7/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Tutorial",   self.fontSize, (True, "center"), borderRadius=10)
         # Check if save file exists to enable/disable continue button
         try:
             with open("save.json", "r") as f:
@@ -19,11 +24,6 @@ class MainMenu(Screen):
             self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*2/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
         except FileNotFoundError:
             self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*2/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
-        self.joinButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Join", self.fontSize, (True, "center"), borderRadius=10)
-        self.settingsButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Settings", self.fontSize, (True, "center"), borderRadius=10)
-        self.statisticsButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Statistics", self.fontSize, (True, "center"), borderRadius=10)
-        self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*6/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
-        self.tutorialButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*7/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonGreyedOutColor, "Tutorial", self.fontSize, (True, "center"), borderRadius=10)
 
 
     def OnExit(self):

@@ -1,4 +1,4 @@
-from config import deepSea
+from config import settings
 import random
 
 class Screen:
@@ -6,7 +6,7 @@ class Screen:
     def __init__(self, screenManager, screen):
         self.screenManager = screenManager
         self.screen = screen
-        self.background = deepSea
+        self.background = settings.deepSea
         
         # dice animation variables
         self.diceList = [1, 2, 3, 4, 5, 6]
@@ -33,6 +33,7 @@ class Screen:
         self.buttonHoverColor = (200, 200, 200)
         self.buttonGreyedOutColor = (150, 150, 150)
         self.fontSize = self.screen.get_height() / 20
+        self.scrollDistance = 0
     
     def OnExit(self):
         """Called when screen is exited - cleanup can be done here"""

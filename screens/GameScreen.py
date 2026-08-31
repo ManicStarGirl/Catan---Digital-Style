@@ -1,8 +1,4 @@
-from config import (
-    numberOfRings, hexSize, gameScale, hexWidthRatio, hexHeightRatio,
-    selectorColor, selectorAlpha, zoomFactor, maxZoom, minZoom, textSize,
-    numberSize, pauseAlpha, panSpeed, diceRedColor, diceYellowColor
-)
+from config import settings, numberSize, panSpeed, hexSize, hexWidthRatio, hexHeightRatio, minZoom, maxZoom, textSize
 from screens import Screen
 from ui import uiRect, hex
 from hex_grid import newTiles
@@ -15,7 +11,7 @@ class GameScreen(Screen):
         super().__init__(screenManager, screen)
         # Only setup things that don't depend on screen size here
         # Generate the initial hex map (a spiral/ring-based board of `numberOfRings` rings)
-        self.tileList = tileList if tileList is not None else newTiles(numberOfRings)
+        self.tileList = tileList if tileList is not None else newTiles(settings.numberOfRings)
         self.settlements = settlements if settlements is not None else getSettlementPositions(self.tileList)
         self.roads = roads if roads is not None else getRoadPositions(self.tileList)
         # List of player colors and current player tracking
@@ -31,7 +27,7 @@ class GameScreen(Screen):
         self.mouse_down_pos = None
         self.offset_x = 0
         self.offset_y = 0
-        self.gameScale = gameScale
+        self.gameScale = settings.gameScale
         self.numberSize = numberSize
 
         self.diceSideLength = self.screen.get_width() / 25
@@ -45,9 +41,9 @@ class GameScreen(Screen):
         self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
         self.endTurnButton = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.buttonColor, "End Turn", self.fontSize/2, (True, "center"), borderRadius=5)
         self.endTurnBorder = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.currentPlayer[0], scalable=(True, "center"), borderRadius=5, thickness=6)
-        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, diceRedColor, scalable=(True, "center"), borderRadius=12)
+        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, settings.diceRedColor, scalable=(True, "center"), borderRadius=12)
         self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
-        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, diceYellowColor, scalable=(True, "center"), borderRadius=12)
+        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, settings.diceYellowColor, scalable=(True, "center"), borderRadius=12)
         self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
 
     def OnExit(self):
@@ -76,11 +72,11 @@ class GameScreen(Screen):
                     worldPos = (mousePos - self.gamePos) / self.gameScale
 
                     if event.y > 0:
-                        self.gameScale *= zoomFactor
+                        self.gameScale *= settings.zoomFactor
                         if self.gameScale > maxZoom:
                             self.gameScale = maxZoom
                     else:
-                        self.gameScale /= zoomFactor
+                        self.gameScale /= settings.zoomFactor
                         if self.gameScale < minZoom:
                             self.gameScale = minZoom
 
@@ -92,10 +88,10 @@ class GameScreen(Screen):
                     self.numberSize = pygame.font.Font('assets/fonts/MinionPro-BoldCn.otf', round(textSize * self.gameScale))
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mousePos = pygame.mouse.get_pos()
+                    mouseWorldPos = (pygame.Vector2(mousePos) - self.gamePos) / self.gameScale
+                    closestCorner, closestRoad = self.findClosestIntersection(mouseWorldPos)
                     if event.button == 1:
-                        mousePos = pygame.mouse.get_pos()
-                        mouseWorldPos = (pygame.Vector2(mousePos) - self.gamePos) / self.gameScale
-                        closestCorner, closestRoad = self.findClosestIntersection(mouseWorldPos)
                         if self.endTurnButton.isClicked(mousePos):
                             self.currentPlayer = (self.playerList[(self.currentPlayer[1] + 1) % len(self.playerList)], self.currentPlayer[1] + 1)
                         elif self.redDice.isClicked(mousePos) or self.yellowDice.isClicked(mousePos):
@@ -117,7 +113,7 @@ class GameScreen(Screen):
                             # Find and update the road position
                             for pos in self.roads:
                                 if pos[0] == closestRoad[0] and pos[1] == closestRoad[1]:
-                                    if pos[3] == None:
+                                    if self.validRoad(pos):
                                         pos[3] = self.currentPlayer[0]  # Replace None with player color
                                         break
                             
@@ -127,6 +123,8 @@ class GameScreen(Screen):
                         self.offset_y = self.gamePos.y - self.mouse_down_pos[1]
                         self.dragging = True
                     elif event.button == 3:  # Right click
+                        if self.endTurnButton.isClicked(mousePos):
+                            self.currentPlayer = (self.playerList[(self.currentPlayer[1] - 1) % len(self.playerList)], self.currentPlayer[1] - 1)
                         mousePos = pygame.mouse.get_pos()
                         mouseWorldPos = (pygame.Vector2(mousePos) - self.gamePos) / self.gameScale
                         closestCorner, closestRoad = self.findClosestIntersection(mouseWorldPos)
@@ -140,9 +138,7 @@ class GameScreen(Screen):
                         elif closestRoad:
                             # Find and update the road position
                             for pos in self.roads:
-                                print(pos[0] == closestRoad[0] and pos[1] == closestRoad[1], pos, closestRoad)
                                 if pos[0] == closestRoad[0] and pos[1] == closestRoad[1]:
-                                    print(pos[3] == self.currentPlayer[0], pos[3], self.currentPlayer[0])
                                     if pos[3] == self.currentPlayer[0]:
                                         pos[3] = None  # Replace player color with None
                                         break
@@ -167,7 +163,7 @@ class GameScreen(Screen):
                             self.paused = False
                         elif self.mainMenuButton.isClicked(mouse_pos):
                             self.saveGame()
-                            return "main_menu"
+                            return "mainMenu"
                         elif self.quitButton.isClicked(mouse_pos):
                             self.saveGame()
                             return "quit"
@@ -299,41 +295,44 @@ class GameScreen(Screen):
                         squareSize,
                         squareSize
                     )
-                    pygame.draw.rect(screen, self.currentPlayer[0], rect)
+                    transSurface = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
+                    pygame.draw.rect(transSurface, (self.currentPlayer[0][0], self.currentPlayer[0][1], self.currentPlayer[0][2], settings.hoverAlpha), transSurface.get_rect())
+                    screen.blit(transSurface, rect)
 
             # Draw road preview if close enough
             if closestRoad:
-                roadWorld = pygame.Vector2(
-                    closestRoad[0] * hexSize * hexWidthRatio,
-                    closestRoad[1] * hexSize * hexHeightRatio
-                )
-                screenPos = roadWorld * self.gameScale + self.gamePos
-                roadLength = 20 * self.gameScale
-                roadWidth = 6 * self.gameScale
+                if self.validRoad(closestRoad):
+                    roadWorld = pygame.Vector2(
+                        closestRoad[0] * hexSize * hexWidthRatio,
+                        closestRoad[1] * hexSize * hexHeightRatio
+                    )
+                    screenPos = roadWorld * self.gameScale + self.gamePos
+                    roadLength = 20 * self.gameScale
+                    roadWidth = 6 * self.gameScale
 
-                angleRad = math.radians(closestRoad[2])
-                
-                # Direction vector along the road
-                dirX = math.cos(angleRad)
-                dirY = math.sin(angleRad)
-                
-                # Perpendicular vector (for width)
-                perpX = -dirY
-                perpY = dirX
-                
-                # Calculate 4 corners
-                corners = [
-                    (screenPos.x - dirX * roadLength/2 + perpX * roadWidth/2,
-                    screenPos.y - dirY * roadLength/2 + perpY * roadWidth/2),
-                    (screenPos.x + dirX * roadLength/2 + perpX * roadWidth/2,
-                    screenPos.y + dirY * roadLength/2 + perpY * roadWidth/2),
-                    (screenPos.x + dirX * roadLength/2 - perpX * roadWidth/2,
-                    screenPos.y + dirY * roadLength/2 - perpY * roadWidth/2),
-                    (screenPos.x - dirX * roadLength/2 - perpX * roadWidth/2,
-                    screenPos.y - dirY * roadLength/2 - perpY * roadWidth/2)
-                ]
+                    angleRad = math.radians(closestRoad[2])
+                    
+                    # Direction vector along the road
+                    dirX = math.cos(angleRad)
+                    dirY = math.sin(angleRad)
+                    
+                    # Perpendicular vector (for width)
+                    perpX = -dirY
+                    perpY = dirX
+                    
+                    # Calculate 4 corners
+                    corners = [
+                        (screenPos.x - dirX * roadLength/2 + perpX * roadWidth/2,
+                        screenPos.y - dirY * roadLength/2 + perpY * roadWidth/2),
+                        (screenPos.x + dirX * roadLength/2 + perpX * roadWidth/2,
+                        screenPos.y + dirY * roadLength/2 + perpY * roadWidth/2),
+                        (screenPos.x + dirX * roadLength/2 - perpX * roadWidth/2,
+                        screenPos.y + dirY * roadLength/2 - perpY * roadWidth/2),
+                        (screenPos.x - dirX * roadLength/2 - perpX * roadWidth/2,
+                        screenPos.y - dirY * roadLength/2 - perpY * roadWidth/2)
+                    ]
 
-                pygame.draw.polygon(screen, self.currentPlayer[0], corners)
+                    self.drawTransparentPolygon(screen, corners, self.currentPlayer[0], settings.hoverAlpha)
             
             # Highlight the hex currently under the mouse cursor.
             # hoveredHexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
@@ -347,8 +346,8 @@ class GameScreen(Screen):
         self.endTurnBorder.draw(screen)
         
         # Draw dice buttons
-        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, diceRedColor, scalable=(True, "center"), borderRadius=12)
-        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, diceYellowColor, scalable=(True, "center"), borderRadius=12)
+        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, settings.diceRedColor, scalable=(True, "center"), borderRadius=12)
+        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, settings.diceYellowColor, scalable=(True, "center"), borderRadius=12)
         self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
         self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
         self.redDice.draw(screen)
@@ -357,12 +356,12 @@ class GameScreen(Screen):
         self.yellowDiceBorder.draw(screen)
 
         # draw dice pips
-        self.draw_dice_pips(screen, self.redDice.rect, self.dicePipSpacing, self.dicePipSize, self.currentRedValue, diceYellowColor)
-        self.draw_dice_pips(screen, self.yellowDice.rect, self.dicePipSpacing, self.dicePipSize, self.currentYellowValue, diceRedColor)
+        self.draw_dice_pips(screen, self.redDice.rect, self.dicePipSpacing, self.dicePipSize, self.currentRedValue, settings.diceYellowColor)
+        self.draw_dice_pips(screen, self.yellowDice.rect, self.dicePipSpacing, self.dicePipSize, self.currentYellowValue, settings.diceRedColor)
 
         if self.paused:
             # Draw pause overlay
-            pauseRect = uiRect(0, 0, screen.get_width(), screen.get_height(), (0, 0, 0), scalable=(False, None), alpha=pauseAlpha)
+            pauseRect = uiRect(0, 0, screen.get_width(), screen.get_height(), (0, 0, 0), scalable=(False, None), alpha=settings.pauseAlpha)
             pauseRect.draw(screen)
 
             # Draw quit button and text
@@ -441,20 +440,137 @@ class GameScreen(Screen):
         return closestCorner, closestRoad
 
     def validSettlement(self, position):
-        """Check if a settlement position is valid (not adjacent to existing settlements)"""
+        """Check if a settlement position is valid according to Catan rules.
+        
+        Rules:
+        1. Cannot place on a spot that already has a settlement
+        2. Must be at least 1.33 units away from any existing settlement (distance rule, 2 spaces away)
+        3. During initial placement (< 2 settlements): can place anywhere valid
+        4. After initial placement: must be adjacent to your own road network
+        
+        Args:
+            position: Tuple (x, y, player_color) representing the settlement position
+            
+        Returns:
+            bool: True if settlement placement is valid, False otherwise
+        """
         if position[2] is not None:  # Already has a settlement
             return False
         
-        # Check distance to all existing settlements
+        # Check distance to all existing settlements (Catan distance rule)
         for settlement in self.settlements:
             if settlement[2] is not None:  # Only check placed settlements
-                # Calculate distance between positions
+                # Calculate distance between positions using Pythagorean theorem
                 dx = position[0] - settlement[0]
                 dy = position[1] - settlement[1]
-                distance = (dx**2 + dy**2) ** (1/2) # Pythagorean theorem
+                distance = (dx**2 + dy**2) ** (1/2)
                 
                 # In Catan, settlements must be at least ~1.33 units apart in this coordinate system
                 if distance < 1.33:
                     return False
+
+        # Count how many settlements the current player has placed
+        playerSettlements = 0
+        for settlement in self.settlements:
+            if settlement[2] == self.currentPlayer[0]:
+                playerSettlements += 1
+
+        # During initial placement phase (first 2 settlements), free placement is allowed
+        if playerSettlements < 2:
+            return True
+
+        # After initial placement, settlements must be adjacent to your road network
+        for road in self.roads:
+            if road[3] == self.currentPlayer[0]:  # Only check your own roads
+                dx = position[0] - road[0]
+                dy = position[1] - road[1]
+                distance = (dx**2 + dy**2) ** (1/2)
+                
+                # Settlement is valid if it's adjacent to one of your roads
+                if distance < 0.7:
+                    return True
+                    
+        # If not adjacent to any of your roads, placement is invalid
+        return False
+
+    def validRoad(self, position):
+        """Check if a road position is valid according to Catan rules.
         
-        return True
+        Rules:
+        1. Cannot place on a spot that already has a road
+        2. Must be adjacent to your own settlements or existing roads
+        3. Road chaining: roads can connect to form a continuous network
+        
+        Args:
+            position: Tuple (x, y, angle, player_color) representing the road position
+            
+        Returns:
+            bool: True if road placement is valid, False otherwise
+        """
+        if position[3] is not None:  # Already has a road
+            return False
+        
+        # Extract road coordinates (angle not needed for distance checking)
+        roadX, roadY = position[0], position[1]
+
+        # Check if road is adjacent to your own settlements
+        for settlement in self.settlements:
+            if settlement[2] == self.currentPlayer[0]:  # Only check your own settlements
+                # Calculate distance between road and settlement
+                dx = roadX - settlement[0]
+                dy = roadY - settlement[1]
+                distance = (dx**2 + dy**2) ** (1/2)
+                
+                # Roads should be adjacent to settlements (roughly 0.67 units in this coordinate system)
+                if distance < 0.7:
+                    return True
+        
+        # Check if road can connect to your existing roads (road chaining)
+        for road in self.roads:
+            if road[3] == self.currentPlayer[0]:  # Only check your own roads
+                dx = roadX - road[0]
+                dy = roadY - road[1]
+                distance = (dx**2 + dy**2) ** (1/2)
+                
+                # Roads can connect to existing roads at specific distances
+                if distance < 1:  # Most connections are within this range
+                    return True
+                elif distance == 1:  # Special case: some valid connections are exactly at distance 1
+                    # Additional heuristic: Y coordinates must differ to filter false positives
+                    if roadY != road[1]:
+                        return True
+
+        return False
+
+    def drawTransparentPolygon(self, screen, corners, color, alpha):
+        """
+        Draw a polygon with transparency on a surface and blit it to the screen.
+        
+        Args:
+            screen: The pygame screen to blit to
+            corners: List of (x, y) tuples defining the polygon corners
+            color: RGB tuple (r, g, b) for the polygon color
+            alpha: Alpha value (0-255) for transparency
+        """
+        # Calculate bounding box for the transparent surface
+        min_x = min(corner[0] for corner in corners)
+        max_x = max(corner[0] for corner in corners)
+        min_y = min(corner[1] for corner in corners)
+        max_y = max(corner[1] for corner in corners)
+        
+        # Create transparent surface sized to fit the polygon
+        surfaceWidth = int(max_x - min_x) + 2
+        surfaceHeight = int(max_y - min_y) + 2
+        transSurface = pygame.Surface((surfaceWidth, surfaceHeight), pygame.SRCALPHA)
+        
+        # Adjust corners to be relative to the surface
+        adjustedCorners = [
+            (corner[0] - min_x + 1, corner[1] - min_y + 1)
+            for corner in corners
+        ]
+        
+        # Draw the polygon with transparency on the surface
+        pygame.draw.polygon(transSurface, (*color, alpha), adjustedCorners)
+        
+        # Blit the transparent surface to the screen
+        screen.blit(transSurface, (min_x - 1, min_y - 1))
