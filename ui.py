@@ -16,7 +16,6 @@ class uiRect:
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
         self.font = pygame.font.Font('assets/fonts/MinionPro-BoldCn.otf', round(fontSize*settings.uiScale))
-        self.textColor = (0, 0, 0)
         self.borderRadius = borderRadius
         self.thickness = thickness
 
@@ -43,6 +42,10 @@ class uiRect:
         else:
             pygame.draw.rect(screen, self.color, (x, y, width, height), border_radius=self.borderRadius, width=self.thickness)
         if self.text != None:
+            if (0.299 * self.color[0] + 0.587 * self.color[1] + 0.114 * self.color[2]) >= 128:
+                self.textColor = (0, 0, 0)
+            else:
+                self.textColor = (255, 255, 255)
             text = self.font.render(self.text, True, self.textColor)
             textRect = text.get_rect(center=(self.x + self.width/2, self.y + self.height/2))
             screen.blit(text, textRect)

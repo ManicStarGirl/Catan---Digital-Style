@@ -40,6 +40,11 @@ a user settings system with JSON persistence.
 - **Animated dice rolling** with red and yellow dice featuring independent randomized bouncing animation and pip display
 - **Save/load game system** for persistent game state (tiles, settlements, roads, current player)
 - **User settings system** with JSON persistence for customizable game options
+  - Dynamic settings interface with +/- buttons for real-time modification
+  - Color settings screen with RGB sliders for UI customization
+  - Smart value cycling for different setting types (presets for scales, ranges for numeric values)
+  - Auto-save on settings screen exit
+  - ESC key to return to main menu with settings saved
 - **Fullscreen toggle** with F11
 - **Pause system** with ESC (includes quit button and main menu navigation)
 - **View culling** for performance (only draws visible hexes)
@@ -84,23 +89,25 @@ python game.py
 | End Turn button | Cycle to next player (border shows current player color) |
 | Right-click End Turn | Cycle to previous player |
 | F11 | Toggle fullscreen |
-| Escape | Toggle pause / Quit from pause menu |
+| Escape | Toggle pause / Quit from pause menu / Return to main menu from settings |
+| Settings Screen | +/- buttons to adjust values, Color Settings button for UI customization |
 
 ## Project Structure
 
 - `game.py` - Main entry point with screen manager and game loop
 - `screens/` - Screen management system
   - `__init__.py` - Base Screen class with common UI setup and enhanced dice animation variables (independent red/yellow dice movement with randomized shaking)
-  - `mainMenu.py` - Main menu screen with navigation buttons and save/load functionality
+  - `mainMenuScreen.py` - Main menu screen with navigation buttons and save/load functionality
   - `GameScreen.py` - Game screen with hex grid, camera controls, settlement/road placement with Catan rules, player turn system, animated dice rolling, and pause system
-  - `settingsScreen.py` - Settings screen for user configuration
+  - `settingsScreen.py` - Dynamic settings screen with real-time modification and color settings navigation
+  - `colorSettingsScreen.py` - Color customization screen for UI elements
 - `game/` - Game logic and data
   - `player.py` - Player class with resources, buildings, and victory points
   - `game.md` - Game development documentation
 - `config.py` - Configuration system with UserSettings class for JSON persistence, default constants (colors, zoom settings, hex geometry, UI settings, dice colors)
 - `hex_grid.py` - Hex grid generation algorithms (ring-based, terrain/number assignment)
 - `coordinates.py` - Hex coordinate system conversions (pixel ↔ hex, rounding), settlement/road position calculations (returns mutable lists)
-- `ui.py` - UI components (uiRect class for scalable UI elements, hex class for tile rendering)
+- `ui.py` - UI components (uiRect class for scalable UI elements with automatic text color detection, hex class for tile rendering)
 - `assets/fonts/` - Font files for number tokens
 
 ## Technical Details
@@ -108,6 +115,7 @@ python game.py
 - **Coordinate system**: Uses doubled hex coordinates for grid logic, converts to axial for mouse interaction with rounded precision for consistent positioning
 - **Settlement validation**: Enforces Catan spacing rules (1 position of space between settlements) to prevent adjacent settlements
 - **Rendering**: Pointy-topped hexagons with proper aspect ratio (3:2 width, √3/2 height)
+- **Settlement rendering**: House-shaped polygons instead of simple squares for better visual representation
 - **Performance**: Implements view culling to avoid drawing off-screen hexes
 - **Frame-rate independence**: Movement uses delta time for consistent speed across framerates
 - **Save system**: JSON-based game state persistence including tiles, settlements, roads, and current player

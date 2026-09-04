@@ -36,10 +36,10 @@ class GameScreen(Screen):
         self.dicePipSpacing = self.diceSideLength / 5
 
         # Recalculate buttons with current screen size
-        self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
-        self.mainMenuButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Main Menu", self.fontSize, (True, "center"), borderRadius=10)
-        self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, self.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
-        self.endTurnButton = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.buttonColor, "End Turn", self.fontSize/2, (True, "center"), borderRadius=5)
+        self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
+        self.mainMenuButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Main Menu", self.fontSize, (True, "center"), borderRadius=10)
+        self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
+        self.endTurnButton = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, settings.buttonColor, "End Turn", self.fontSize/2, (True, "center"), borderRadius=5)
         self.endTurnBorder = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.currentPlayer[0], scalable=(True, "center"), borderRadius=5, thickness=6)
         self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, settings.diceRedColor, scalable=(True, "center"), borderRadius=12)
         self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
@@ -230,14 +230,22 @@ class GameScreen(Screen):
                     settlement[1] * hexSize * hexHeightRatio
                 )
                 screenPos = cornerWorld * self.gameScale + self.gamePos
-                squareSize = 12 * self.gameScale
-                rect = pygame.Rect(
-                    screenPos.x - squareSize/2,
-                    screenPos.y - squareSize/2,
-                    squareSize,
-                    squareSize
-                )
-                pygame.draw.rect(screen, settlement[2], rect)
+                # Scale the house shape (base size around 20x20 pixels, scaled by gameScale)
+                base_size = 14 * self.gameScale
+                offset_x = screenPos.x - base_size / 2
+                offset_y = screenPos.y - base_size / 2
+                
+                housePoints = [
+                    (offset_x + 1 * base_size/6, offset_y + 6 * base_size/6),  # M1,6
+                    (offset_x + 1 * base_size/6, offset_y + 3 * base_size/6),  # L1,3  
+                    (offset_x + 0 * base_size/6, offset_y + 3 * base_size/6),  # L0,3
+                    (offset_x + 3 * base_size/6, offset_y + 0 * base_size/6),  # L3,0 (roof peak)
+                    (offset_x + 6 * base_size/6, offset_y + 3 * base_size/6),  # L6,3
+                    (offset_x + 5 * base_size/6, offset_y + 3 * base_size/6),  # L5,3
+                    (offset_x + 5 * base_size/6, offset_y + 6 * base_size/6),  # L5,6
+                ]
+                
+                pygame.draw.polygon(screen, settlement[2], housePoints)
         for road in self.roads:
             if road[3] is not None:
                 cornerWorld = pygame.Vector2(
@@ -246,7 +254,7 @@ class GameScreen(Screen):
                 )
                 screenPos = cornerWorld * self.gameScale + self.gamePos
                 roadLength = 20 * self.gameScale
-                roadWidth = 6 * self.gameScale
+                roadWidth = 4 * self.gameScale
 
                 angleRad = math.radians(road[2])
                 
@@ -288,16 +296,31 @@ class GameScreen(Screen):
                         closestCorner[1] * hexSize * hexHeightRatio
                     )
                     screenPos = cornerWorld * self.gameScale + self.gamePos
-                    squareSize = 12 * self.gameScale
-                    rect = pygame.Rect(
-                        screenPos.x - squareSize/2,
-                        screenPos.y - squareSize/2,
-                        squareSize,
-                        squareSize
-                    )
-                    transSurface = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
-                    pygame.draw.rect(transSurface, (self.currentPlayer[0][0], self.currentPlayer[0][1], self.currentPlayer[0][2], settings.hoverAlpha), transSurface.get_rect())
-                    screen.blit(transSurface, rect)
+                    base_size = 14 * self.gameScale
+                    offset_x = screenPos.x - base_size / 2
+                    offset_y = screenPos.y - base_size / 2
+                    
+                    housePoints = [
+                        (offset_x + 1 * base_size/6, offset_y + 6 * base_size/6),  # M1,6
+                        (offset_x + 1 * base_size/6, offset_y + 3 * base_size/6),  # L1,3  
+                        (offset_x + 0 * base_size/6, offset_y + 3 * base_size/6),  # L0,3
+                        (offset_x + 3 * base_size/6, offset_y + 0 * base_size/6),  # L3,0 (roof peak)
+                        (offset_x + 6 * base_size/6, offset_y + 3 * base_size/6),  # L6,3
+                        (offset_x + 5 * base_size/6, offset_y + 3 * base_size/6),  # L5,3
+                        (offset_x + 5 * base_size/6, offset_y + 6 * base_size/6),  # L5,6
+                    ]
+                    
+                    cityPoints = [
+                        (offset_x + 0 * base_size/6, offset_y + 6 * base_size/6),   # M0,6
+                        (offset_x + 0 * base_size/6, offset_y + 2 * base_size/6),   # L0,2
+                        (offset_x + 2 * base_size/6, offset_y + 0 * base_size/6), # L2,0
+                        (offset_x + 4 * base_size/6, offset_y + 2 * base_size/6),  # L4,2
+                        (offset_x + 4 * base_size/6, offset_y + 3 * base_size/6), # L4,3
+                        (offset_x + 6 * base_size/6, offset_y + 3 * base_size/6),  # L6,3
+                        (offset_x + 6 * base_size/6, offset_y + 6 * base_size/6),   # L6,6
+                    ]
+                    
+                    self.drawTransparentPolygon(screen, housePoints, self.currentPlayer[0], settings.hoverAlpha)
 
             # Draw road preview if close enough
             if closestRoad:
@@ -308,7 +331,7 @@ class GameScreen(Screen):
                     )
                     screenPos = roadWorld * self.gameScale + self.gamePos
                     roadLength = 20 * self.gameScale
-                    roadWidth = 6 * self.gameScale
+                    roadWidth = 4 * self.gameScale
 
                     angleRad = math.radians(closestRoad[2])
                     

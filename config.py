@@ -21,14 +21,16 @@ DEFAULT_CONFIG = {
     "dragThreshold": 12,  # minimum drag distance before registering as a drag (pixels)
 
     # --- UI ---
-    "selectorColor": (255, 255, 255),    # tile selection highlight color
-    "selectorAlpha": 85,                 # tile selection highlight (color, transparency)
-    "numberTileColor": (212, 205, 142),  # background color for number tokens
-    "uiScale": 1.0,                      # UI scale factor
-    "pauseAlpha": 128,                   # transparency for pause overlay (out of 255)
-    "diceRedColor": (193, 33, 39),       # catan red color
-    "diceYellowColor": (254, 202, 10),   # catan yellow color
-    "hoverAlpha": 170,                   # transparency for hover effect (out of 255)
+    "selectorColor": (255, 255, 255),         # tile selection highlight color
+    "selectorAlpha": 85,                      # tile selection highlight (color, transparency)
+    "numberTileColor": (212, 205, 142),       # background color for number tokens
+    "uiScale": 1.0,                           # UI scale factor
+    "pauseAlpha": 128,                        # transparency for pause overlay (out of 255)
+    "diceRedColor": (193, 33, 39),            # catan red color
+    "diceYellowColor": (254, 202, 10),        # catan yellow color
+    "hoverAlpha": 170,                        # transparency for hover effect (out of 255)
+    "buttonColor": (255, 255, 255),           # button color
+    "buttonGreyedOutColor": (150, 150, 150),  # button color when greyed out
 
     # --- Resource/tile colors ---
     "desert": (181, 174, 112),
@@ -56,7 +58,7 @@ DEFAULT_CONFIG["numberSize"] = pygame.font.Font('assets/fonts/MinionPro-BoldCn.o
 
 class UserSettings:
     def __init__(self):
-        self.settingsFile = "user_settings.json"
+        self.settingsFile = "userSettings.json"
 
         # --- Camera / view controls ---
         self.gameScale =       DEFAULT_CONFIG["gameScale"]
@@ -75,6 +77,8 @@ class UserSettings:
         self.diceRedColor =    DEFAULT_CONFIG["diceRedColor"]
         self.diceYellowColor = DEFAULT_CONFIG["diceYellowColor"]
         self.hoverAlpha =      DEFAULT_CONFIG["hoverAlpha"]
+        self.buttonColor =     DEFAULT_CONFIG["buttonColor"]
+        self.buttonGreyedOutColor = DEFAULT_CONFIG["buttonGreyedOutColor"]
 
         # --- Resource/tile colors ---
         self.desert =          DEFAULT_CONFIG["desert"]

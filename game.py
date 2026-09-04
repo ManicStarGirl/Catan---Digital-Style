@@ -1,9 +1,10 @@
 import pygame, json
 from ui import hex
 from config import fpsLimit
-from screens.mainMenu import MainMenu
+from screens.mainMenuScreen import MainMenu
 from screens.GameScreen import GameScreen
 from screens.settingsScreen import Settings
+from screens.colorSettingsScreen import ColorSettings
 
 # from screens.gameScreen import GameScreen  # when you create it
 
@@ -49,6 +50,9 @@ class ScreenManager:
                 pass
         elif screenName == "settings":
             self.current_screen = Settings(self, screen)
+            self.current_screen.OnEnter()
+        elif screenName == "colorSettings":
+            self.current_screen = ColorSettings(self, screen)
             self.current_screen.OnEnter()
         elif screenName == "quit":
             return False  # Signal to quit

@@ -25,6 +25,60 @@
 - ✅ Pause system with quit and main menu navigation
 - ✅ Fullscreen toggle
 - ✅ View culling for performance
+- ✅ Dynamic settings system with real-time modification
+  - Automatic button generation for all settings attributes
+  - Smart value cycling (presets for scales, wrapping for numeric values)
+  - Auto-save on screen exit
+- ✅ Color settings screen for UI customization
+- ✅ Improved settlement rendering (house-shaped polygons)
+- ✅ Centralized UI color configuration
+  - Button colors now managed through settings system
+  - Greyed-out button states for disabled options
+
+## Recent Updates (September 2026)
+
+### UI/UX Improvements
+- **Settings Screen Overhaul**: Complete rewrite to support dynamic setting modification
+  - Replaced hardcoded buttons with automatically generated controls
+  - 3-button layout per setting: [-] [display] [+]
+  - Added "Color Settings" navigation button
+  - Improved scrolling with dynamic button repositioning
+  - ESC key to return to main menu with auto-save
+- **Color Settings Screen**: New dedicated screen for UI customization
+  - RGB slider controls with gradient visualization
+  - Real-time color preview
+  - Conflict detection for similar colors
+  - Reset button to restore default colors
+  - Drag-and-drop slider handles
+- **Smart Text Color Detection**: Automatic contrast-based text color
+  - White text on dark backgrounds, black text on light backgrounds
+  - Uses luminance formula for optimal readability
+
+### Visual Enhancements
+- **Settlement Rendering**: Changed from square markers to house-shaped polygons
+  - 7-point polygon representing house structure
+  - Better visual recognition on the game board
+  - Consistent scaling with game zoom
+- **City Rendering**: Added distinct city polygon shape
+  - 7-point polygon representing city structure
+  - Different visual from settlements for game clarity
+- **Road Rendering**: Reduced width from 6 to 4 pixels for better aesthetics
+- **Building Preview**: Enhanced preview system with transparent house/city shapes
+
+### Code Organization
+- **File Renaming**: `mainMenu.py` → `mainMenuScreen.py` for consistency
+- **Color Management**: Centralized button colors in settings configuration
+- **Settings File**: Renamed from `user_settings.json` to `userSettings.json`
+- **Git Configuration**: Added `userSettings.json` to .gitignore
+
+### Configuration System
+- **New Settings**: Added `buttonColor` and `buttonGreyedOutColor` to config
+- **Smart Value Handling**: Different modification logic for different setting types
+  - Float values: cycle through presets (gameScale, zoomFactor, uiScale)
+  - FPS limit: 30-120 range with 10-step increments
+  - Number of rings: 2-10 range
+  - Color values: 0-255 range with wrapping
+- **Auto-save**: Settings automatically saved on screen exit
 
 ## Planned Features
 
