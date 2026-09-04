@@ -12,8 +12,8 @@ class Screen:
         self.diceList = [1, 2, 3, 4, 5, 6]
         self.isRolling = False
         self.rollStartTime = 0
-        self.ROLL_DURATION = 880  # Duration of the roll in milliseconds
-        self.SHUFFLE_DELAY = 80    # Milliseconds between number switches during animation
+        self.rollDuration = 880  # Duration of the roll in milliseconds
+        self.shuffleDelay = 80    # Milliseconds between number switches during animation
         self.lastShuffleTime = 0
         self.redYOffset = 0
         self.yellowYOffset = 0

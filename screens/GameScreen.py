@@ -1,15 +1,14 @@
 from config import settings, numberSize, panSpeed, hexSize, hexWidthRatio, hexHeightRatio, minZoom, maxZoom, textSize
 from screens import Screen
-from ui import uiRect, hex
+from ui import UIRect, hex
 from hex_grid import newTiles
 from coordinates import hexRound, pixelToFractionalHex, getSettlementPositions, getRoadPositions
 import pygame, json, math, random
 
 class GameScreen(Screen):
     """Main game screen for playing Catan"""
-    def __init__(self, screenManager, screen, tileList=None, settlements=None, roads=None, currentPlayer=None): # Assets, fonts, static button positions, things that never change
+    def __init__(self, screenManager, screen, tileList=None, settlements=None, roads=None, currentPlayer=None):
         super().__init__(screenManager, screen)
-        # Only setup things that don't depend on screen size here
         # Generate the initial hex map (a spiral/ring-based board of `numberOfRings` rings)
         self.tileList = tileList if tileList is not None else newTiles(settings.numberOfRings)
         self.settlements = settlements if settlements is not None else getSettlementPositions(self.tileList)
@@ -18,15 +17,15 @@ class GameScreen(Screen):
         self.playerList = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 0, 0), (255, 255, 255)]
         self.currentPlayer = currentPlayer if currentPlayer is not None else (self.playerList[0], 0)
 
-    def OnEnter(self): # Reset game state, start animations, recalculate responsive positions
+    def OnEnter(self):
         super().OnEnter()
         self.paused = False
         self.dragging = False
         # Center the game board on screen
         self.gamePos = pygame.Vector2(self.screen.get_width() / 2, self.screen.get_height() / 2)
-        self.mouse_down_pos = None
-        self.offset_x = 0
-        self.offset_y = 0
+        self.mouseDownPos = None
+        self.offsetX = 0
+        self.offsetY = 0
         self.gameScale = settings.gameScale
         self.numberSize = numberSize
 
@@ -36,18 +35,18 @@ class GameScreen(Screen):
         self.dicePipSpacing = self.diceSideLength / 5
 
         # Recalculate buttons with current screen size
-        self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
-        self.mainMenuButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Main Menu", self.fontSize, (True, "center"), borderRadius=10)
-        self.quitButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
-        self.endTurnButton = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, settings.buttonColor, "End Turn", self.fontSize/2, (True, "center"), borderRadius=5)
-        self.endTurnBorder = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.currentPlayer[0], scalable=(True, "center"), borderRadius=5, thickness=6)
-        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, settings.diceRedColor, scalable=(True, "center"), borderRadius=12)
-        self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
-        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, settings.diceYellowColor, scalable=(True, "center"), borderRadius=12)
-        self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.continueButton = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
+        self.mainMenuButton = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Main Menu", self.fontSize, (True, "center"), borderRadius=10)
+        self.quitButton = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height() * 5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Quit", self.fontSize, (True, "center"), borderRadius=10)
+        self.endTurnButton = UIRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, settings.buttonColor, "End Turn", self.fontSize/2, (True, "center"), borderRadius=5)
+        self.endTurnBorder = UIRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.currentPlayer[0], scalable=(True, "center"), borderRadius=5, thickness=6)
+        self.redDice = UIRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, settings.diceRedColor, scalable=(True, "center"), borderRadius=12)
+        self.redDiceBorder = UIRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.yellowDice = UIRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, settings.diceYellowColor, scalable=(True, "center"), borderRadius=12)
+        self.yellowDiceBorder = UIRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
 
     def OnExit(self):
-        pass # Likely nothing here
+        pass
 
     def Update(self, dt, currentTime):
         """Handle game input and update game state"""
@@ -83,8 +82,7 @@ class GameScreen(Screen):
                     # Re-anchor gamePos so the same world point stays under the mouse after zooming.
                     self.gamePos = mousePos - worldPos * self.gameScale
 
-                    # Number tokens are drawn from a font, so their size must be regenerated
-                    # whenever zoom level changes.
+                    # Number tokens are drawn from a font, so their size must be regenerated whenever zoom level changes
                     self.numberSize = pygame.font.Font('assets/fonts/MinionPro-BoldCn.otf', round(textSize * self.gameScale))
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -107,20 +105,20 @@ class GameScreen(Screen):
                             for pos in self.settlements:
                                 if pos[0] == closestCorner[0] and pos[1] == closestCorner[1]:
                                     if self.validSettlement(pos):
-                                        pos[2] = self.currentPlayer[0]  # Replace None with player color
+                                        pos[2] = self.currentPlayer[0]
                                         break
                         elif closestRoad:
                             # Find and update the road position
                             for pos in self.roads:
                                 if pos[0] == closestRoad[0] and pos[1] == closestRoad[1]:
                                     if self.validRoad(pos):
-                                        pos[3] = self.currentPlayer[0]  # Replace None with player color
+                                        pos[3] = self.currentPlayer[0]
                                         break
                             
                         # Start a drag: remember the offset between the mouse and gamePos
-                        self.mouse_down_pos = event.pos
-                        self.offset_x = self.gamePos.x - self.mouse_down_pos[0]
-                        self.offset_y = self.gamePos.y - self.mouse_down_pos[1]
+                        self.mouseDownPos = event.pos
+                        self.offsetX = self.gamePos.x - self.mouseDownPos[0]
+                        self.offsetY = self.gamePos.y - self.mouseDownPos[1]
                         self.dragging = True
                     elif event.button == 3:  # Right click
                         if self.endTurnButton.isClicked(mousePos):
@@ -133,27 +131,27 @@ class GameScreen(Screen):
                             for pos in self.settlements:
                                 if pos[0] == closestCorner[0] and pos[1] == closestCorner[1]:
                                     if pos[2] == self.currentPlayer[0]:
-                                        pos[2] = None  # Replace player color with None
+                                        pos[2] = None
                                         break
                         elif closestRoad:
                             # Find and update the road position
                             for pos in self.roads:
                                 if pos[0] == closestRoad[0] and pos[1] == closestRoad[1]:
                                     if pos[3] == self.currentPlayer[0]:
-                                        pos[3] = None  # Replace player color with None
+                                        pos[3] = None
                                         break
                         
 
                 elif event.type == pygame.MOUSEMOTION:
                     if self.dragging:
-                        mouse_x, mouse_y = event.pos
-                        self.gamePos.x = mouse_x + self.offset_x
-                        self.gamePos.y = mouse_y + self.offset_y
+                        mouseX, mouseY = event.pos
+                        self.gamePos.x = mouseX + self.offsetX
+                        self.gamePos.y = mouseY + self.offsetY
 
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if event.button == 1:
                         self.dragging = False
-                        self.mouse_down_pos = None
+                        self.mouseDownPos = None
             else:
                 # Handle pause menu input
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -170,23 +168,23 @@ class GameScreen(Screen):
         
         if not self.paused:
             if self.isRolling:
-                progress = (currentTime - self.rollStartTime) / self.ROLL_DURATION
+                progress = (currentTime - self.rollStartTime) / self.rollDuration
                 self.redYOffset = math.sin(progress * math.pi * 2 * self.redNumShakes) * self.redShakeOffset
                 self.yellowYOffset = math.sin(progress * math.pi * 2 * self.yellowNumShakes) * self.yellowShakeOffset
                 # Check if rolling duration has expired
-                if currentTime - self.rollStartTime > self.ROLL_DURATION:
+                if currentTime - self.rollStartTime > self.rollDuration:
                     self.isRolling = False
-                    self.currentRedValue = random.choice(self.diceList)  # Final landing value
-                    self.currentYellowValue = random.choice(self.diceList)  # Final landing value
+                    self.currentRedValue = random.choice(self.diceList)
+                    self.currentYellowValue = random.choice(self.diceList)
                 # Shuffle face values quickly during the roll interval
-                elif currentTime - self.lastShuffleTime > self.SHUFFLE_DELAY:
+                elif currentTime - self.lastShuffleTime > self.shuffleDelay:
                     self.currentRedValue = random.choice([n for n in self.diceList if n != self.currentRedValue])
                     self.currentYellowValue = random.choice([n for n in self.diceList if n != self.currentYellowValue])
                     self.lastShuffleTime = currentTime
             # Handle keyboard panning
             keys = pygame.key.get_pressed()
 
-            # Hold shift to pan faster.
+            # Hold shift to pan faster
             if keys[pygame.K_RSHIFT] or keys[pygame.K_LSHIFT]:
                 speed = panSpeed * 2
             else:
@@ -207,8 +205,8 @@ class GameScreen(Screen):
         gameWidth, gameHeight = screen.get_size()
         shapeSize = hexSize * self.gameScale
         buffer = shapeSize  # extra margin so hexes just off-screen still get drawn (avoids pop-in)
-        
-        # Visible world-space bounds, used to cull hexes that are off-screen.
+
+        # Visible world-space bounds, used to cull hexes that are off-screen
         min_x = -self.gamePos.x - buffer
         max_x = -self.gamePos.x + gameWidth + buffer
         min_y = -self.gamePos.y - buffer
@@ -219,7 +217,7 @@ class GameScreen(Screen):
             tile_x = tile.x * shapeSize * hexWidthRatio
             tile_y = tile.y * shapeSize * hexHeightRatio
 
-            # Only draw hexes that are within (or near) the visible screen area.
+            # Only draw hexes that are within (or near) the visible screen area
             if min_x <= tile_x <= max_x and min_y <= tile_y <= max_y:
                 tile.draw(screen, self.gamePos, self.gameScale, self.numberSize)
 
@@ -231,18 +229,18 @@ class GameScreen(Screen):
                 )
                 screenPos = cornerWorld * self.gameScale + self.gamePos
                 # Scale the house shape (base size around 20x20 pixels, scaled by gameScale)
-                base_size = 14 * self.gameScale
-                offset_x = screenPos.x - base_size / 2
-                offset_y = screenPos.y - base_size / 2
-                
+                baseSize = 14 * self.gameScale
+                offsetX = screenPos.x - baseSize / 2
+                offsetY = screenPos.y - baseSize / 2
+
                 housePoints = [
-                    (offset_x + 1 * base_size/6, offset_y + 6 * base_size/6),  # M1,6
-                    (offset_x + 1 * base_size/6, offset_y + 3 * base_size/6),  # L1,3  
-                    (offset_x + 0 * base_size/6, offset_y + 3 * base_size/6),  # L0,3
-                    (offset_x + 3 * base_size/6, offset_y + 0 * base_size/6),  # L3,0 (roof peak)
-                    (offset_x + 6 * base_size/6, offset_y + 3 * base_size/6),  # L6,3
-                    (offset_x + 5 * base_size/6, offset_y + 3 * base_size/6),  # L5,3
-                    (offset_x + 5 * base_size/6, offset_y + 6 * base_size/6),  # L5,6
+                    (offsetX + 1 * baseSize/6, offsetY + 6 * baseSize/6),
+                    (offsetX + 1 * baseSize/6, offsetY + 3 * baseSize/6),
+                    (offsetX + 0 * baseSize/6, offsetY + 3 * baseSize/6),
+                    (offsetX + 3 * baseSize/6, offsetY + 0 * baseSize/6),
+                    (offsetX + 6 * baseSize/6, offsetY + 3 * baseSize/6),
+                    (offsetX + 5 * baseSize/6, offsetY + 3 * baseSize/6),
+                    (offsetX + 5 * baseSize/6, offsetY + 6 * baseSize/6),
                 ]
                 
                 pygame.draw.polygon(screen, settlement[2], housePoints)
@@ -257,11 +255,11 @@ class GameScreen(Screen):
                 roadWidth = 4 * self.gameScale
 
                 angleRad = math.radians(road[2])
-                
+
                 # Direction vector along the road
                 dirX = math.cos(angleRad)
                 dirY = math.sin(angleRad)
-                
+
                 # Perpendicular vector (for width)
                 perpX = -dirY
                 perpY = dirX
@@ -280,8 +278,6 @@ class GameScreen(Screen):
 
                 pygame.draw.polygon(screen, road[3], corners)
 
-        # uiBase = uiRect(0, screen.get_height()*5/6, screen.get_width(), screen.get_height()/6, (255, 255, 255), scalable=(True, "bottom"))
-        # uiBase.draw(screen)
         if not self.paused:
             # Handle placement preview when not paused
             mousePos = pygame.mouse.get_pos()
@@ -296,28 +292,28 @@ class GameScreen(Screen):
                         closestCorner[1] * hexSize * hexHeightRatio
                     )
                     screenPos = cornerWorld * self.gameScale + self.gamePos
-                    base_size = 14 * self.gameScale
-                    offset_x = screenPos.x - base_size / 2
-                    offset_y = screenPos.y - base_size / 2
-                    
+                    baseSize = 14 * self.gameScale
+                    offsetX = screenPos.x - baseSize / 2
+                    offsetY = screenPos.y - baseSize / 2
+
                     housePoints = [
-                        (offset_x + 1 * base_size/6, offset_y + 6 * base_size/6),  # M1,6
-                        (offset_x + 1 * base_size/6, offset_y + 3 * base_size/6),  # L1,3  
-                        (offset_x + 0 * base_size/6, offset_y + 3 * base_size/6),  # L0,3
-                        (offset_x + 3 * base_size/6, offset_y + 0 * base_size/6),  # L3,0 (roof peak)
-                        (offset_x + 6 * base_size/6, offset_y + 3 * base_size/6),  # L6,3
-                        (offset_x + 5 * base_size/6, offset_y + 3 * base_size/6),  # L5,3
-                        (offset_x + 5 * base_size/6, offset_y + 6 * base_size/6),  # L5,6
+                        (offsetX + 1 * baseSize/6, offsetY + 6 * baseSize/6),
+                        (offsetX + 1 * baseSize/6, offsetY + 3 * baseSize/6),
+                        (offsetX + 0 * baseSize/6, offsetY + 3 * baseSize/6),
+                        (offsetX + 3 * baseSize/6, offsetY + 0 * baseSize/6),
+                        (offsetX + 6 * baseSize/6, offsetY + 3 * baseSize/6),
+                        (offsetX + 5 * baseSize/6, offsetY + 3 * baseSize/6),
+                        (offsetX + 5 * baseSize/6, offsetY + 6 * baseSize/6),
                     ]
-                    
+
                     cityPoints = [
-                        (offset_x + 0 * base_size/6, offset_y + 6 * base_size/6),   # M0,6
-                        (offset_x + 0 * base_size/6, offset_y + 2 * base_size/6),   # L0,2
-                        (offset_x + 2 * base_size/6, offset_y + 0 * base_size/6), # L2,0
-                        (offset_x + 4 * base_size/6, offset_y + 2 * base_size/6),  # L4,2
-                        (offset_x + 4 * base_size/6, offset_y + 3 * base_size/6), # L4,3
-                        (offset_x + 6 * base_size/6, offset_y + 3 * base_size/6),  # L6,3
-                        (offset_x + 6 * base_size/6, offset_y + 6 * base_size/6),   # L6,6
+                        (offsetX + 0 * baseSize/6, offsetY + 6 * baseSize/6),
+                        (offsetX + 0 * baseSize/6, offsetY + 2 * baseSize/6),
+                        (offsetX + 2 * baseSize/6, offsetY + 0 * baseSize/6),
+                        (offsetX + 4 * baseSize/6, offsetY + 2 * baseSize/6),
+                        (offsetX + 4 * baseSize/6, offsetY + 3 * baseSize/6),
+                        (offsetX + 6 * baseSize/6, offsetY + 3 * baseSize/6),
+                        (offsetX + 6 * baseSize/6, offsetY + 6 * baseSize/6),
                     ]
                     
                     self.drawTransparentPolygon(screen, housePoints, self.currentPlayer[0], settings.hoverAlpha)
@@ -334,11 +330,11 @@ class GameScreen(Screen):
                     roadWidth = 4 * self.gameScale
 
                     angleRad = math.radians(closestRoad[2])
-                    
+
                     # Direction vector along the road
                     dirX = math.cos(angleRad)
                     dirY = math.sin(angleRad)
-                    
+
                     # Perpendicular vector (for width)
                     perpX = -dirY
                     perpY = dirX
@@ -357,34 +353,28 @@ class GameScreen(Screen):
 
                     self.drawTransparentPolygon(screen, corners, self.currentPlayer[0], settings.hoverAlpha)
             
-            # Highlight the hex currently under the mouse cursor.
-            # hoveredHexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
-            # hoveredHex = hex(hoveredHexCoords[0], hoveredHexCoords[1], selectorColor)
-            # hoveredHex.draw(screen, self.gamePos, self.gameScale, alpha=selectorAlpha)
-
-
         # Draw end turn button
-        self.endTurnBorder = uiRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.currentPlayer[0], scalable=(True, "center"), borderRadius=5, thickness=6)
+        self.endTurnBorder = UIRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.currentPlayer[0], scalable=(True, "center"), borderRadius=5, thickness=6)
         self.endTurnButton.draw(screen)
         self.endTurnBorder.draw(screen)
         
         # Draw dice buttons
-        self.redDice = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, settings.diceRedColor, scalable=(True, "center"), borderRadius=12)
-        self.yellowDice = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, settings.diceYellowColor, scalable=(True, "center"), borderRadius=12)
-        self.redDiceBorder = uiRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
-        self.yellowDiceBorder = uiRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.redDice = UIRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, settings.diceRedColor, scalable=(True, "center"), borderRadius=12)
+        self.yellowDice = UIRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, settings.diceYellowColor, scalable=(True, "center"), borderRadius=12)
+        self.redDiceBorder = UIRect(self.diceDistance, self.diceDistance + self.redYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
+        self.yellowDiceBorder = UIRect(self.diceDistance * 3/2 + self.diceSideLength, self.diceDistance + self.yellowYOffset, self.diceSideLength, self.diceSideLength, (0, 0, 0), scalable=(True, "center"), borderRadius=12, thickness=3)
         self.redDice.draw(screen)
         self.redDiceBorder.draw(screen)
         self.yellowDice.draw(screen)
         self.yellowDiceBorder.draw(screen)
 
         # draw dice pips
-        self.draw_dice_pips(screen, self.redDice.rect, self.dicePipSpacing, self.dicePipSize, self.currentRedValue, settings.diceYellowColor)
-        self.draw_dice_pips(screen, self.yellowDice.rect, self.dicePipSpacing, self.dicePipSize, self.currentYellowValue, settings.diceRedColor)
+        self.drawDicePips(screen, self.redDice.rect, self.dicePipSpacing, self.dicePipSize, self.currentRedValue, settings.diceYellowColor)
+        self.drawDicePips(screen, self.yellowDice.rect, self.dicePipSpacing, self.dicePipSize, self.currentYellowValue, settings.diceRedColor)
 
         if self.paused:
             # Draw pause overlay
-            pauseRect = uiRect(0, 0, screen.get_width(), screen.get_height(), (0, 0, 0), scalable=(False, None), alpha=settings.pauseAlpha)
+            pauseRect = UIRect(0, 0, screen.get_width(), screen.get_height(), (0, 0, 0), scalable=(False, None), alpha=settings.pauseAlpha)
             pauseRect.draw(screen)
 
             # Draw quit button and text
@@ -403,10 +393,10 @@ class GameScreen(Screen):
         with open("save.json", "w") as f:
             json.dump(save_data, f)
     
-    def draw_dice_pips(self, screen, diceRect, pipSpacing, pipSize, value, pipColor):
+    def drawDicePips(self, screen, diceRect, pipSpacing, pipSize, value, pipColor):
         """Draw pips on a dice based on its value"""
 
-        DICE_PIP_POSITIONS = {
+        dicePipPositions = {
             1: [(0, 0)],
             2: [(-1, -1), (1, 1)],
             3: [(-1, -1), (0, 0), (1, 1)],
@@ -415,25 +405,25 @@ class GameScreen(Screen):
             6: [(-1, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (1, 1)]
         }
 
-        center_x, center_y = diceRect.center
-        positions = DICE_PIP_POSITIONS[value]
+        centerX, centerY = diceRect.center
+        positions = dicePipPositions[value]
         
-        for i, (offset_x, offset_y) in enumerate(positions):
-            pip_center = (
-                center_x + offset_x * pipSpacing,
-                center_y + offset_y * pipSpacing
+        for i, (offsetX, offsetY) in enumerate(positions):
+            pipCenter = (
+                centerX + offsetX * pipSpacing,
+                centerY + offsetY * pipSpacing
             )
             # Use hexagon for single pip (the 1), circles for everything else
             if value == 1:
                 points = []
                 for i in range(6):
                     angle = math.radians(60 * i + 30)
-                    x = pip_center[0] + pipSize * 3/2 * math.cos(angle)
-                    y = pip_center[1] + pipSize * 3/2 * math.sin(angle)
+                    x = pipCenter[0] + pipSize * 3/2 * math.cos(angle)
+                    y = pipCenter[1] + pipSize * 3/2 * math.sin(angle)
                     points.append((x, y))
                 pygame.draw.polygon(screen, pipColor, points)
             else:
-                pygame.draw.circle(screen, pipColor, pip_center, pipSize)
+                pygame.draw.circle(screen, pipColor, pipCenter, pipSize)
             
     def findClosestIntersection(self, mouseWorldPos):
         """Find the closest intersection to the mouse position"""

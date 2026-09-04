@@ -1,14 +1,13 @@
 from screens import Screen
 import pygame, json
-from ui import uiRect
+from ui import UIRect
 from config import settings, DEFAULT_CONFIG
 
 class ColorSettings(Screen):
-    def __init__(self, screenManager, screen): # Assets, fonts, static button positions, things that never change
+    def __init__(self, screenManager, screen):
         super().__init__(screenManager, screen)
-        # Only setup things that don't depend on screen size here
     
-    def OnEnter(self): # Reset game state, start animations, recalculate responsive positions
+    def OnEnter(self):
         super().OnEnter()
         self.scrollDistance = 0
         self.numButtons = 1
@@ -40,9 +39,9 @@ class ColorSettings(Screen):
         self.handleXG = int(self.sliderX + (self.sliderG / self.maxRGB) * (self.sliderWidth - self.handleWidth))
         self.handleXB = int(self.sliderX + (self.sliderB / self.maxRGB) * (self.sliderWidth - self.handleWidth))
 
-        self.handleRectR = uiRect(self.handleXR, self.sliderYR, self.handleWidth, self.handleHeight, settings.deepSea)
-        self.handleRectG = uiRect(self.handleXG, self.sliderYG, self.handleWidth, self.handleHeight, settings.deepSea)
-        self.handleRectB = uiRect(self.handleXB, self.sliderYB, self.handleWidth, self.handleHeight, settings.deepSea)
+        self.handleRectR = UIRect(self.handleXR, self.sliderYR, self.handleWidth, self.handleHeight, settings.deepSea)
+        self.handleRectG = UIRect(self.handleXG, self.sliderYG, self.handleWidth, self.handleHeight, settings.deepSea)
+        self.handleRectB = UIRect(self.handleXB, self.sliderYB, self.handleWidth, self.handleHeight, settings.deepSea)
 
         self.resetButton = None
 
@@ -57,7 +56,7 @@ class ColorSettings(Screen):
                     totalWidth = buttonSize * 2 + self.buttonWidth + spacing * 2
                     startX = int(self.screen.get_width()/2 - totalWidth/2)
                     
-                    button = uiRect(
+                    button = UIRect(
                         int(startX + buttonSize + spacing), 
                         int(self.screen.get_height()*self.numButtons/8 - self.buttonHeight/2 + self.scrollDistance), 
                         self.buttonWidth, 
@@ -71,7 +70,7 @@ class ColorSettings(Screen):
                     self.settingButtons.append(button)
                     self.numButtons += 1
 
-        doneButton = uiRect(
+        doneButton = UIRect(
             int(self.screen.get_width()/2 - self.buttonWidth/2), 
             int(self.screen.get_height()*self.numButtons/8 - self.buttonHeight/2 + self.scrollDistance), 
             self.buttonWidth, 
@@ -85,7 +84,7 @@ class ColorSettings(Screen):
         self.settingButtons.append(doneButton)
             
     def OnExit(self):
-        pass # Likely nothing here
+        pass
     
     def Update(self, dt, currentTime):
         """Handle input events and return screen navigation commands"""
@@ -130,7 +129,7 @@ class ColorSettings(Screen):
 
                                     # Create reset button
                                     resetButtonY = int(self.sliderYR - self.screen.get_height() * 0.1) + int(self.screen.get_height() * 0.55)
-                                    self.resetButton = uiRect(
+                                    self.resetButton = UIRect(
                                         int(self.sliderX + self.sliderWidth//2 - self.buttonWidth//2),
                                         resetButtonY,
                                         self.buttonWidth,
@@ -146,9 +145,9 @@ class ColorSettings(Screen):
                                     self.handleXR = self.sliderX + (self.sliderR / self.maxRGB) * (self.sliderWidth - self.handleWidth)
                                     self.handleXG = self.sliderX + (self.sliderG / self.maxRGB) * (self.sliderWidth - self.handleWidth)
                                     self.handleXB = self.sliderX + (self.sliderB / self.maxRGB) * (self.sliderWidth - self.handleWidth)
-                                    self.handleRectR = uiRect(self.handleXR, self.sliderYR, self.handleWidth, self.handleHeight, settings.deepSea)
-                                    self.handleRectG = uiRect(self.handleXG, self.sliderYG, self.handleWidth, self.handleHeight, settings.deepSea)
-                                    self.handleRectB = uiRect(self.handleXB, self.sliderYB, self.handleWidth, self.handleHeight, settings.deepSea)
+                                    self.handleRectR = UIRect(self.handleXR, self.sliderYR, self.handleWidth, self.handleHeight, settings.deepSea)
+                                    self.handleRectG = UIRect(self.handleXG, self.sliderYG, self.handleWidth, self.handleHeight, settings.deepSea)
+                                    self.handleRectB = UIRect(self.handleXB, self.sliderYB, self.handleWidth, self.handleHeight, settings.deepSea)
                                     self.colorPickerScreen = True
             else:  # colorPickerScreen mode
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -196,19 +195,19 @@ class ColorSettings(Screen):
                                         self.draggingR = True
                                         self.handleXR = max(self.sliderX, min(mousePos[0], self.sliderX + self.sliderWidth - self.handleWidth))
                                         self.sliderR = int((self.handleXR - self.sliderX) / (self.sliderWidth - self.handleWidth) * self.maxRGB)
-                                        self.handleRectR = uiRect(self.handleXR, self.sliderYR, self.handleWidth, self.handleHeight, settings.deepSea)
+                                        self.handleRectR = UIRect(self.handleXR, self.sliderYR, self.handleWidth, self.handleHeight, settings.deepSea)
                                     elif (self.sliderYG <= mousePos[1] <= self.sliderYG + self.sliderHeight):
                                         # Green slider bar clicked
                                         self.draggingG = True
                                         self.handleXG = max(self.sliderX, min(mousePos[0], self.sliderX + self.sliderWidth - self.handleWidth))
                                         self.sliderG = int((self.handleXG - self.sliderX) / (self.sliderWidth - self.handleWidth) * self.maxRGB)
-                                        self.handleRectG = uiRect(self.handleXG, self.sliderYG, self.handleWidth, self.handleHeight, settings.deepSea)
+                                        self.handleRectG = UIRect(self.handleXG, self.sliderYG, self.handleWidth, self.handleHeight, settings.deepSea)
                                     elif (self.sliderYB <= mousePos[1] <= self.sliderYB + self.sliderHeight):
                                         # Blue slider bar clicked
                                         self.draggingB = True
                                         self.handleXB = max(self.sliderX, min(mousePos[0], self.sliderX + self.sliderWidth - self.handleWidth))
                                         self.sliderB = int((self.handleXB - self.sliderX) / (self.sliderWidth - self.handleWidth) * self.maxRGB)
-                                        self.handleRectB = uiRect(self.handleXB, self.sliderYB, self.handleWidth, self.handleHeight, settings.deepSea)
+                                        self.handleRectB = UIRect(self.handleXB, self.sliderYB, self.handleWidth, self.handleHeight, settings.deepSea)
                                 
                                 # Check if clicked directly on handles
                                 if self.handleRectR.isClicked(mousePos):
@@ -265,12 +264,12 @@ class ColorSettings(Screen):
             button.draw(screen)
         if self.colorPickerScreen:
             # Draw pause overlay
-            pauseRect = uiRect(0, 0, screen.get_width(), screen.get_height(), (0, 0, 0), scalable=(False, None), alpha=settings.pauseAlpha)
+            pauseRect = UIRect(0, 0, screen.get_width(), screen.get_height(), (0, 0, 0), scalable=(False, None), alpha=settings.pauseAlpha)
             pauseRect.draw(screen)
 
             # Draw color preview rect behind sliders
             currentColor = (self.sliderR, self.sliderG, self.sliderB)
-            previewRect = uiRect(
+            previewRect = UIRect(
                 int(self.sliderX - self.screen.get_width() * 0.05),
                 int(self.sliderYR - self.screen.get_height() * 0.1),
                 int(self.sliderWidth + self.screen.get_width() * 0.1),

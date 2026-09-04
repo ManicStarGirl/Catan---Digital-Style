@@ -1,14 +1,13 @@
 from screens import Screen
 import pygame, json
-from ui import uiRect
+from ui import UIRect
 from config import settings
 
 class Settings(Screen):
-    def __init__(self, screenManager, screen): # Assets, fonts, static button positions, things that never change
+    def __init__(self, screenManager, screen):
         super().__init__(screenManager, screen)
-        # Only setup things that don't depend on screen size here
     
-    def OnEnter(self): # Reset game state, start animations, recalculate responsive positions
+    def OnEnter(self):
         super().OnEnter()
         self.scrollDistance = 0
         self.numButtons = 1
@@ -26,7 +25,7 @@ class Settings(Screen):
                     startX = self.screen.get_width()/2 - totalWidth/2
                     
                     # "-" button
-                    minusButton = uiRect(
+                    minusButton = UIRect(
                         startX, 
                         self.screen.get_height()*self.numButtons/8 - self.buttonHeight/2 + self.scrollDistance, 
                         buttonSize, 
@@ -40,7 +39,7 @@ class Settings(Screen):
                     self.settingButtons.append(minusButton)
                     
                     # Display button (center)
-                    displayButton = uiRect(
+                    displayButton = UIRect(
                         startX + buttonSize + spacing, 
                         self.screen.get_height()*self.numButtons/8 - self.buttonHeight/2 + self.scrollDistance, 
                         self.buttonWidth, 
@@ -54,7 +53,7 @@ class Settings(Screen):
                     self.settingButtons.append(displayButton)
                     
                     # "+" button
-                    plusButton = uiRect(
+                    plusButton = UIRect(
                         startX + self.buttonWidth + buttonSize + spacing * 2, 
                         self.screen.get_height()*self.numButtons/8 - self.buttonHeight/2 + self.scrollDistance, 
                         buttonSize, 
@@ -69,7 +68,7 @@ class Settings(Screen):
                     
                     self.numButtons += 1
         # Add Done and Color Settings button
-        colorButton = uiRect(
+        colorButton = UIRect(
             self.screen.get_width()/2 - self.buttonWidth/2, 
             self.screen.get_height()*self.numButtons/8 - self.buttonHeight/2 + self.scrollDistance, 
             self.buttonWidth, 
@@ -83,7 +82,7 @@ class Settings(Screen):
         self.settingButtons.append(colorButton)
         self.numButtons += 1
         
-        doneButton = uiRect(
+        doneButton = UIRect(
             self.screen.get_width()/2 - self.buttonWidth/2, 
             self.screen.get_height()*self.numButtons/8 - self.buttonHeight/2 + self.scrollDistance, 
             self.buttonWidth, 
@@ -97,7 +96,7 @@ class Settings(Screen):
         self.settingButtons.append(doneButton)
             
     def OnExit(self):
-        pass # Likely nothing here
+        pass
     
     def Update(self, dt, currentTime):
         """Handle input events and return screen navigation commands"""

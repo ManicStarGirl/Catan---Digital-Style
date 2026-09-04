@@ -3,7 +3,7 @@ from config import hexSize, hexWidthRatio, hexHeightRatio, settings
 
 # Module for UI components and hex rendering
 
-class uiRect:
+class UIRect:
     """UI rectangle component with optional text and scaling support"""
     def __init__(self, x, y, width, height, color, text=None, fontSize=0, scalable=(True, "center"), alpha=None, borderRadius=0, thickness=0):
         self.x = x
@@ -79,7 +79,7 @@ class hex:
         self.number = number
         self.resource = resource
     
-    def draw(self, screen, gamePos, gameScale, numberSize=None, alpha=None):
+    def draw(self, screen, gamePos, gameScale, numberSize=None, alpha=None, showToken=False):
         """Draw the hex tile with optional transparency and number token"""
         # transparency is only used for hovering over tiles, which is currently removed
 
@@ -132,8 +132,17 @@ class hex:
             screen.blit(alphaSurface, (realX - shapeSize, realY - shapeSize) + gamePos)
         if self.number is not None:
             # Draw the token's circular background, centered on the tile.
-            if self.number != "?":
+            if not isinstance(self.number, str) or showToken:
                 pygame.draw.circle(screen, settings.numberTileColor, (realX, realY) + gamePos, shapeSize/3)
+                if (0.299 * settings.numberTileColor[0] + 0.587 * settings.numberTileColor[1] + 0.114 * settings.numberTileColor[2]) >= 128:
+                    self.textColor = (0, 0, 0)
+                else:
+                    self.textColor = (255, 255, 255)
+            else:
+                if (0.299 * settings.fog[0] + 0.587 * settings.fog[1] + 0.114 * settings.fog[2]) >= 128:
+                    self.textColor = (0, 0, 0)
+                else:
+                    self.textColor = (255, 255, 255)
 
             # Color the number text based on how "hot" the roll is: 6 and 8
             # are the most probable non-7 rolls on two dice, so they're
@@ -143,8 +152,8 @@ class hex:
             # falls back to blue.
             if self.number in [6, 8]:
                 tokenNumber = numberSize.render(str(self.number), True, "red")
-            elif self.number == "?" or (2 <= self.number <= 12 and self.number != 7):
-                tokenNumber = numberSize.render(str(self.number), True, "black")
+            elif isinstance(self.number, str) or (2 <= self.number <= 12 and self.number != 7):
+                tokenNumber = numberSize.render(str(self.number), True, self.textColor)
             else:
                 tokenNumber = numberSize.render(str(self.number), True, "blue")
             

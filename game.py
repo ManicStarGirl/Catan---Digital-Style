@@ -5,6 +5,8 @@ from screens.mainMenuScreen import MainMenu
 from screens.GameScreen import GameScreen
 from screens.settingsScreen import Settings
 from screens.colorSettingsScreen import ColorSettings
+from screens.newGameScreen import NewGame
+from screens.buildScreen import BuildScreen
 
 # from screens.gameScreen import GameScreen  # when you create it
 
@@ -26,41 +28,56 @@ clock = pygame.time.Clock()
 class ScreenManager:
     """Manages screen transitions and game state"""
     def __init__(self):
-        self.current_screen = None
+        self.currentScreen = None
     
-    def switch_screen(self, screenName):
+    def switchScreen(self, screenName):
         """Switch to a different screen based on screen_name"""
         if screenName == "mainMenu":
-            self.current_screen = MainMenu(self, screen)
-            self.current_screen.OnEnter()
+            self.currentScreen = MainMenu(self, screen)
+            self.currentScreen.OnEnter()
         elif screenName == "new":
-            self.current_screen = GameScreen(self, screen)
-            self.current_screen.OnEnter()
+            self.currentScreen = NewGame(self, screen)
+            self.currentScreen.OnEnter()
         elif screenName == "continue":
             try:
                 with open("save.json", "r") as f:
                     savedData = json.load(f)
                 tileList = [hex(*t) for t in savedData["tiles"]]
-                settlements = [[s[0], s[1], tuple(s[2]) if s[2] else None] for s in savedData["settlements"]]
-                roads = [[r[0], r[1], r[2], tuple(r[3]) if r[3] else None] for r in savedData["roads"]]
-                player = (tuple(savedData["currentPlayer"][0]), savedData["currentPlayer"][1])
-                self.current_screen = GameScreen(self, screen, tileList, settlements, roads, player)
-                self.current_screen.OnEnter()
+                if savedData["settlements"] is not None:
+                    settlements = [[s[0], s[1], tuple(s[2]) if s[2] else None] for s in savedData["settlements"]]
+                else:
+                    settlements = None
+                if savedData["roads"] is not None:
+                    roads = [[r[0], r[1], r[2], tuple(r[3]) if r[3] else None] for r in savedData["roads"]]
+                else:
+                    roads = None
+                if savedData["currentPlayer"] is not None:
+                    player = (tuple(savedData["currentPlayer"][0]), savedData["currentPlayer"][1])
+                else:
+                    player = None
+                self.currentScreen = GameScreen(self, screen, tileList, settlements, roads, player)
+                self.currentScreen.OnEnter()
             except FileNotFoundError:
                 pass
         elif screenName == "settings":
-            self.current_screen = Settings(self, screen)
-            self.current_screen.OnEnter()
+            self.currentScreen = Settings(self, screen)
+            self.currentScreen.OnEnter()
         elif screenName == "colorSettings":
-            self.current_screen = ColorSettings(self, screen)
-            self.current_screen.OnEnter()
+            self.currentScreen = ColorSettings(self, screen)
+            self.currentScreen.OnEnter()
+        elif screenName == "singleplayer":
+            self.currentScreen = GameScreen(self, screen)
+            self.currentScreen.OnEnter()
+        elif screenName == "build":
+            self.currentScreen = BuildScreen(self, screen)
+            self.currentScreen.OnEnter()
         elif screenName == "quit":
             return False  # Signal to quit
         return True
 
 # Initialize screen manager and start at main menu
 screenManager = ScreenManager()
-screenManager.switch_screen("mainMenu")
+screenManager.switchScreen("mainMenu")
 
 # ---------------------------------------------------------------------------
 # Main loop
@@ -73,7 +90,7 @@ while running:
     currentTime = pygame.time.get_ticks()
     
     # Update current screen and handle screen switching
-    result = screenManager.current_screen.Update(dt, currentTime)
+    result = screenManager.currentScreen.Update(dt, currentTime)
     if result == "fullscreen":
         # Toggle fullscreen <-> windowed
         if fullscreen:
@@ -82,12 +99,12 @@ while running:
         else:
             screen = pygame.display.set_mode((screenWidth, screenHeight), pygame.FULLSCREEN)
             fullscreen = True
-        screenManager.current_screen.OnEnter()
+        screenManager.currentScreen.OnEnter()
     elif result:
-        running = screenManager.switch_screen(result)
+        running = screenManager.switchScreen(result)
     
     # Draw current screen
-    screenManager.current_screen.Draw(screen)
+    screenManager.currentScreen.Draw(screen)
     
     # Update display
     pygame.display.flip()

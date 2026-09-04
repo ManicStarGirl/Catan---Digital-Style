@@ -7,8 +7,8 @@ A Python-based hexagonal grid visualization inspired by the board game Catan. Bu
 This is a work-in-progress visualization. Core game mechanics (resource collection, 
 building costs, win conditions) are planned but not yet implemented. Currently supports 
 board generation, camera controls, player turn system, dice rolling with animation, 
-settlement and road placement with proper Catan rules, save/load functionality, and 
-a user settings system with JSON persistence.
+settlement and road placement with proper Catan rules, save/load functionality, 
+a user settings system with JSON persistence, custom board configurations.
 
 ## Planned Features
 
@@ -21,8 +21,9 @@ a user settings system with JSON persistence.
 
 ## Features
 
-- **Screen management system** with main menu and game screens
+- **Screen management system** with main menu, new game, build, and game screens
 - **Procedural hex grid generation** using ring-based spiral algorithm
+- **Custom board configuration support** through JSON files in boards/ directory
 - **Random terrain assignment** with proper Catan resource distribution (sheep, ore, wheat, wood, brick, desert, gold mine)
 - **Number token placement** with standard Catan dice roll distribution
 - **Interactive camera controls**:
@@ -36,6 +37,7 @@ a user settings system with JSON persistence.
   - After initial placement: settlements must be adjacent to your own road network
   - Road placement must be adjacent to your own settlements or existing roads (road chaining)
   - Players can only remove their own buildings
+  - Sea and deep sea tiles excluded from valid building positions
 - **Multi-player turn system** with player color cycling
 - **Animated dice rolling** with red and yellow dice featuring independent randomized bouncing animation and pip display
 - **Save/load game system** for persistent game state (tiles, settlements, roads, current player)
@@ -98,12 +100,16 @@ python game.py
 - `screens/` - Screen management system
   - `__init__.py` - Base Screen class with common UI setup and enhanced dice animation variables (independent red/yellow dice movement with randomized shaking)
   - `mainMenuScreen.py` - Main menu screen with navigation buttons and save/load functionality
+  - `newGameScreen.py` - New game setup screen for board configuration
+  - `buildScreen.py` - Build screen for construction and placement
   - `GameScreen.py` - Game screen with hex grid, camera controls, settlement/road placement with Catan rules, player turn system, animated dice rolling, and pause system
   - `settingsScreen.py` - Dynamic settings screen with real-time modification and color settings navigation
   - `colorSettingsScreen.py` - Color customization screen for UI elements
 - `game/` - Game logic and data
   - `player.py` - Player class with resources, buildings, and victory points
   - `game.md` - Game development documentation
+- `boards/` - Custom board configurations (JSON format)
+- `config.py` - Configuration system with UserSettings class for JSON persistence, default constants (colors, zoom settings, hex geometry, UI settings, dice colors, fog of war settings)
 - `config.py` - Configuration system with UserSettings class for JSON persistence, default constants (colors, zoom settings, hex geometry, UI settings, dice colors)
 - `hex_grid.py` - Hex grid generation algorithms (ring-based, terrain/number assignment)
 - `coordinates.py` - Hex coordinate system conversions (pixel ↔ hex, rounding), settlement/road position calculations (returns mutable lists)
@@ -114,10 +120,13 @@ python game.py
 
 - **Coordinate system**: Uses doubled hex coordinates for grid logic, converts to axial for mouse interaction with rounded precision for consistent positioning
 - **Settlement validation**: Enforces Catan spacing rules (1 position of space between settlements) to prevent adjacent settlements
+- **Sea tile handling**: Excludes sea and deep sea tiles from valid building positions
 - **Rendering**: Pointy-topped hexagons with proper aspect ratio (3:2 width, √3/2 height)
 - **Settlement rendering**: House-shaped polygons instead of simple squares for better visual representation
+- **Smart text color detection**: Automatic contrast-based text color for number tokens using luminance formula
+- **Fog of war support**: Dynamic token visibility with "?" placeholders and conditional rendering
 - **Performance**: Implements view culling to avoid drawing off-screen hexes
 - **Frame-rate independence**: Movement uses delta time for consistent speed across framerates
-- **Save system**: JSON-based game state persistence including tiles, settlements, roads, and current player
+- **Save system**: JSON-based game state persistence including tiles, settlements, roads, and current player with null safety checks
 
 Disclaimer: Ive used AI to write the comments (and this readme), but all of the code comes from me :3

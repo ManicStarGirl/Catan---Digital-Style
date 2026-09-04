@@ -1,3 +1,6 @@
+
+from config import settings
+
 def pixelToFractionalHex(gamePos, coord, size):
     """
     Convert a pixel/screen coordinate into fractional axial hex
@@ -96,18 +99,20 @@ def getSettlementPositions(tileList):
     """Calculate all valid settlement positions (corners) for a given tile list"""
     positions = set()
     for tile in tileList:
-        for dx, dy in [(1/3, -1), (-1/3, -1), (-2/3, 0), (2/3, 0), (1/3, 1), (-1/3, 1)]:
-            x = round(tile.x + dx, 2)
-            y = round(tile.y + dy, 2)
-            positions.add((x, y, None))
+        if tuple(tile.resource) not in [settings.sea, settings.deepSea]:
+            for dx, dy in [(1/3, -1), (-1/3, -1), (-2/3, 0), (2/3, 0), (1/3, 1), (-1/3, 1)]:
+                x = round(tile.x + dx, 2)
+                y = round(tile.y + dy, 2)
+                positions.add((x, y, None))
     return [list(pos) for pos in positions]
 
 def getRoadPositions(tileList):
     """Calculate all valid road positions (edges) for a given tile list"""
     positions = set()
     for tile in tileList:
-        for dx, dy, angle in [(0, -1, 0), (0.5, -0.5, 60), (0.5, 0.5, 120), (0, 1, 0), (-0.5, 0.5, 60), (-0.5, -0.5, 120)]:
-            x = round(tile.x + dx, 2)
-            y = round(tile.y + dy, 2)
-            positions.add((x, y, angle, None))
+        if tuple(tile.resource) not in [settings.sea, settings.deepSea]:
+            for dx, dy, angle in [(0, -1, 0), (0.5, -0.5, 60), (0.5, 0.5, 120), (0, 1, 0), (-0.5, 0.5, 60), (-0.5, -0.5, 120)]:
+                x = round(tile.x + dx, 2)
+                y = round(tile.y + dy, 2)
+                positions.add((x, y, angle, None))
     return [list(pos) for pos in positions]

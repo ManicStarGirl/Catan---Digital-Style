@@ -5,9 +5,10 @@
 ### Phase 1: Core Game Loop
 - ✅ Dice rolling with animation (red and yellow dice with independent movement)
 - ✅ Multi-player turn system with player color cycling
-- ✅ Screen management system (main menu, game screen, settings screen)
+- ✅ Screen management system (main menu, new game, build, game screen, settings screen)
 - ✅ Save/load game system with JSON persistence
 - ✅ User settings system with JSON persistence
+- ✅ Custom board configuration support
 
 ### Phase 2: Building
 - ✅ Settlement placement with Catan rules:
@@ -34,8 +35,55 @@
 - ✅ Centralized UI color configuration
   - Button colors now managed through settings system
   - Greyed-out button states for disabled options
+- ✅ New game setup screen with board configuration
+- ✅ Build screen for construction operations
+- ✅ Smart text color detection for optimal readability
 
 ## Recent Updates (September 2026)
+
+### New Game Flow and Screens
+- **New Game Screen**: Added dedicated screen for game setup and board configuration
+  - Replaces direct game start from main menu
+  - Supports custom board selection from boards/ directory
+  - Provides game mode selection (singleplayer, etc.)
+- **Build Screen**: New dedicated screen for construction and building operations
+  - Separates building mechanics from main game screen
+  - Enhanced user interface for building decisions
+- **Screen Management**: Updated routing system to support new screen flow
+  - "new" → NewGame screen instead of direct GameScreen
+  - "singleplayer" → GameScreen for standard gameplay
+  - "build" → BuildScreen for construction
+
+### Board Configuration System
+- **Custom Board Support**: Added boards/ directory for custom JSON board configurations
+  - Boards stored as JSON files with tile data, resources, and number tokens
+  - Supports multiple custom board layouts
+  - Custom boards ignored in .gitignore (except boards/custom/ subdirectory)
+- **Board Management**: Removed default.json in favor of custom board system
+  - More flexible board configuration approach
+  - Easier board sharing and modification
+
+### Visual Enhancements
+- **Dynamic Text Color Detection**: Enhanced contrast-based text color system
+  - Automatic white/black text selection based on background luminance
+  - Applies to both number tokens and fog of war markers
+  - Uses luminance formula: 0.299*R + 0.587*G + 0.114*B for optimal readability
+- **Enhanced Rendering**: Improved hex.draw() method with showToken parameter
+  - Better control over token visibility and rendering
+  - Supports both numeric and string-based number tokens
+
+### Sea Tile Handling
+- **Building Position Validation**: Updated settlement and road placement logic
+  - Sea and deep sea tiles excluded from valid building positions
+  - getSettlementPositions() now filters out sea tiles
+  - getRoadPositions() now filters out sea tiles
+  - Proper resource type checking using settings.sea and settings.deepSea
+
+### Save System Improvements
+- **Null Safety**: Enhanced save/load system with null checks
+  - Handles missing settlements, roads, and currentPlayer data gracefully
+  - Prevents crashes when loading incomplete save files
+  - More robust error handling for save.json parsing
 
 ### UI/UX Improvements
 - **Settings Screen Overhaul**: Complete rewrite to support dynamic setting modification
@@ -73,6 +121,9 @@
 
 ### Configuration System
 - **New Settings**: Added `buttonColor` and `buttonGreyedOutColor` to config
+- **Terrain Configuration**: Added sea and deep sea resource types for building validation
+  - `settings.sea` and `settings.deepSea` for tile type identification
+  - Used in coordinate calculations to exclude water tiles from building positions
 - **Smart Value Handling**: Different modification logic for different setting types
   - Float values: cycle through presets (gameScale, zoomFactor, uiScale)
   - FPS limit: 30-120 range with 10-step increments

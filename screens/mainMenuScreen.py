@@ -1,34 +1,33 @@
 from screens import Screen
-from ui import uiRect
+from ui import UIRect
 import pygame, json
 from config import settings
 
 class MainMenu(Screen):
     """Main menu screen with game options"""
-    def __init__(self, screenManager, screen): # Assets, fonts, static button positions, things that never change
+    def __init__(self, screenManager, screen):
         super().__init__(screenManager, screen)
-        # Only setup things that don't depend on screen size here
 
-    def OnEnter(self): # Reset game state, start animations, recalculate responsive positions
+    def OnEnter(self):
         super().OnEnter()
         # Recalculate buttons with current screen size
-        self.newButton        = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*1/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor,          "New Game",   self.fontSize, (True, "center"), borderRadius=10)
-        self.joinButton       = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonGreyedOutColor, "Online",     self.fontSize, (True, "center"), borderRadius=10)
-        self.settingsButton   = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor,          "Settings",   self.fontSize, (True, "center"), borderRadius=10)
-        self.statisticsButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonGreyedOutColor, "Statistics", self.fontSize, (True, "center"), borderRadius=10)
-        self.quitButton       = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*6/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor,          "Quit",       self.fontSize, (True, "center"), borderRadius=10)
-        self.tutorialButton   = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*7/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonGreyedOutColor, "Tutorial",   self.fontSize, (True, "center"), borderRadius=10)
+        self.newButton        = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*1/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor,          "New Game",   self.fontSize, (True, "center"), borderRadius=10)
+        self.joinButton       = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonGreyedOutColor, "Online",     self.fontSize, (True, "center"), borderRadius=10)
+        self.settingsButton   = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor,          "Settings",   self.fontSize, (True, "center"), borderRadius=10)
+        self.statisticsButton = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonGreyedOutColor, "Statistics", self.fontSize, (True, "center"), borderRadius=10)
+        self.quitButton       = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*6/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor,          "Quit",       self.fontSize, (True, "center"), borderRadius=10)
+        self.tutorialButton   = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*7/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonGreyedOutColor, "Tutorial",   self.fontSize, (True, "center"), borderRadius=10)
         # Check if save file exists to enable/disable continue button
         try:
             with open("save.json", "r") as f:
                 content = json.load(f)
-            self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*2/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
+            self.continueButton = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*2/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
         except FileNotFoundError:
-            self.continueButton = uiRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*2/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonGreyedOutColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
+            self.continueButton = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*2/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonGreyedOutColor, "Continue", self.fontSize, (True, "center"), borderRadius=10)
 
 
     def OnExit(self):
-        pass # Likely nothing here
+        pass
 
     def Update(self, dt, currentTime):
         """Handle input events and return screen navigation commands"""
