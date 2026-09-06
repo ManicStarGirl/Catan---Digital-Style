@@ -116,3 +116,14 @@ def getRoadPositions(tileList):
                 y = round(tile.y + dy, 2)
                 positions.add((x, y, angle, None))
     return [list(pos) for pos in positions]
+
+def getBoatPositions(tileList):
+    """Calculate all valid boat positions (edges) for a given tile list"""
+    positions = set()
+    for tile in tileList:
+        if tuple(tile.resource) in [settings.sea, settings.deepSea]:
+            for dx, dy, angle in [(0, -1, 0), (0.5, -0.5, 60), (0.5, 0.5, 120), (0, 1, 0), (-0.5, 0.5, 60), (-0.5, -0.5, 120)]:
+                x = round(tile.x + dx, 2)
+                y = round(tile.y + dy, 2)
+                positions.add((x, y, angle, None))
+    return [list(pos) for pos in positions]

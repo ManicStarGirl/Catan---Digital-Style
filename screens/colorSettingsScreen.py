@@ -160,9 +160,9 @@ class ColorSettings(Screen):
                             self.handleXR = self.sliderX + (self.sliderR / self.maxRGB) * (self.sliderWidth - self.handleWidth)
                             self.handleXG = self.sliderX + (self.sliderG / self.maxRGB) * (self.sliderWidth - self.handleWidth)
                             self.handleXB = self.sliderX + (self.sliderB / self.maxRGB) * (self.sliderWidth - self.handleWidth)
-                            self.handleRectR = uiRect(self.handleXR, self.sliderYR, self.handleWidth, self.handleHeight, settings.deepSea)
-                            self.handleRectG = uiRect(self.handleXG, self.sliderYG, self.handleWidth, self.handleHeight, settings.deepSea)
-                            self.handleRectB = uiRect(self.handleXB, self.sliderYB, self.handleWidth, self.handleHeight, settings.deepSea)
+                            self.handleRectR = UIRect(self.handleXR, self.sliderYR, self.handleWidth, self.handleHeight, settings.deepSea)
+                            self.handleRectG = UIRect(self.handleXG, self.sliderYG, self.handleWidth, self.handleHeight, settings.deepSea)
+                            self.handleRectB = UIRect(self.handleXB, self.sliderYB, self.handleWidth, self.handleHeight, settings.deepSea)
                         else:
                             # Check if clicked outside the color picker area
                             pickerAreaX = int(self.sliderX - self.screen.get_width() * 0.05)
@@ -227,15 +227,15 @@ class ColorSettings(Screen):
                     if self.draggingR:
                         self.handleXR = max(self.sliderX, min(mousePos[0], self.sliderX + self.sliderWidth - self.handleWidth))
                         self.sliderR = int((self.handleXR - self.sliderX) / (self.sliderWidth - self.handleWidth) * self.maxRGB)
-                        self.handleRectR = uiRect(self.handleXR, self.sliderYR, self.handleWidth, self.handleHeight, settings.deepSea)
+                        self.handleRectR = UIRect(self.handleXR, self.sliderYR, self.handleWidth, self.handleHeight, settings.deepSea)
                     elif self.draggingG:
                         self.handleXG = max(self.sliderX, min(mousePos[0], self.sliderX + self.sliderWidth - self.handleWidth))
                         self.sliderG = int((self.handleXG - self.sliderX) / (self.sliderWidth - self.handleWidth) * self.maxRGB)
-                        self.handleRectG = uiRect(self.handleXG, self.sliderYG, self.handleWidth, self.handleHeight, settings.deepSea)
+                        self.handleRectG = UIRect(self.handleXG, self.sliderYG, self.handleWidth, self.handleHeight, settings.deepSea)
                     elif self.draggingB:
                         self.handleXB = max(self.sliderX, min(mousePos[0], self.sliderX + self.sliderWidth - self.handleWidth))
                         self.sliderB = int((self.handleXB - self.sliderX) / (self.sliderWidth - self.handleWidth) * self.maxRGB)
-                        self.handleRectB = uiRect(self.handleXB, self.sliderYB, self.handleWidth, self.handleHeight, settings.deepSea)
+                        self.handleRectB = UIRect(self.handleXB, self.sliderYB, self.handleWidth, self.handleHeight, settings.deepSea)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         # Check for conflicts before saving

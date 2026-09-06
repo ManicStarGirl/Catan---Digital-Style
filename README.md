@@ -37,7 +37,7 @@ a user settings system with JSON persistence, custom board configurations.
   - After initial placement: settlements must be adjacent to your own road network
   - Road placement must be adjacent to your own settlements or existing roads (road chaining)
   - Players can only remove their own buildings
-  - Sea and deep sea tiles excluded from valid building positions
+  - Sea and deep sea tiles excluded from settlement/road building positions
 - **Multi-player turn system** with player color cycling
 - **Animated dice rolling** with red and yellow dice featuring independent randomized bouncing animation and pip display
 - **Save/load game system** for persistent game state (tiles, settlements, roads, current player)
@@ -93,6 +93,7 @@ python game.py
 | F11 | Toggle fullscreen |
 | Escape | Toggle pause / Quit from pause menu / Return to main menu from settings |
 | Settings Screen | +/- buttons to adjust values, Color Settings button for UI customization |
+| Build Screen | Click hex selector (top-right) to choose terrain type, left-click/drag to place hexes, right-click/drag to remove hexes, middle-click to drag camera |
 
 ## Project Structure
 
@@ -101,7 +102,7 @@ python game.py
   - `__init__.py` - Base Screen class with common UI setup and enhanced dice animation variables (independent red/yellow dice movement with randomized shaking)
   - `mainMenuScreen.py` - Main menu screen with navigation buttons and save/load functionality
   - `newGameScreen.py` - New game setup screen for board configuration
-  - `buildScreen.py` - Build screen for construction and placement
+  - `buildScreen.py` - Build screen for construction and placement with continuous hex editing, terrain selection, and custom board creation
   - `GameScreen.py` - Game screen with hex grid, camera controls, settlement/road placement with Catan rules, player turn system, animated dice rolling, and pause system
   - `settingsScreen.py` - Dynamic settings screen with real-time modification and color settings navigation
   - `colorSettingsScreen.py` - Color customization screen for UI elements
@@ -120,7 +121,8 @@ python game.py
 
 - **Coordinate system**: Uses doubled hex coordinates for grid logic, converts to axial for mouse interaction with rounded precision for consistent positioning
 - **Settlement validation**: Enforces Catan spacing rules (1 position of space between settlements) to prevent adjacent settlements
-- **Sea tile handling**: Excludes sea and deep sea tiles from valid building positions
+- **Sea tile handling**: Excludes sea and deep sea tiles from valid building positions, but supports boat placement on water tiles
+- **Boat positioning**: Special coordinate calculation for maritime routes on sea and deep sea tiles
 - **Rendering**: Pointy-topped hexagons with proper aspect ratio (3:2 width, √3/2 height)
 - **Settlement rendering**: House-shaped polygons instead of simple squares for better visual representation
 - **Smart text color detection**: Automatic contrast-based text color for number tokens using luminance formula

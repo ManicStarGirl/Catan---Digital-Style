@@ -19,7 +19,9 @@
   - Cannot place on existing roads
   - Must be adjacent to your own settlements or existing roads
   - Road chaining for continuous networks
+- ✅ Boat placement on sea and deep sea tiles for maritime routes
 - ✅ Building preview system (shows valid positions with transparency)
+  - Enhanced settlement/road/boat preview with improved polygon shapes
 - ✅ Remove buildings (right-click to remove your own settlements/roads)
 
 ### Phase 3: Advanced Mechanics
@@ -40,6 +42,27 @@
 - ✅ Smart text color detection for optimal readability
 
 ## Recent Updates (September 2026)
+
+### Build Screen Enhancements
+- **Continuous Hex Editing**: Added ability to place/remove hexes while holding mouse buttons
+  - Left-click and drag to continuously place hexes of selected terrain type
+  - Right-click and drag to continuously remove hexes
+  - Middle-click to drag camera (previously left-click)
+  - Improved hex placement logic with better state management
+- **Terrain Selection System**: Enhanced hex type selection interface
+  - Click hex selector in top-right corner to choose terrain type
+  - Visual feedback showing currently selected terrain
+  - Supports all terrain types including sea, deep sea, and fog
+- **Improved State Management**: Refactored build screen state variables
+  - `choosingHex` (was `placing`) - for selecting hex type from palette
+  - `placingHex` - for continuous hex placement while mouse is held
+  - `removingHex` - for continuous hex removal while right mouse button is held
+- **Sea Tile Overwriting**: Added ability to overwrite sea tiles with other terrain types
+  - Enables board editing flexibility for custom map creation
+  - Maintains proper number token assignment rules
+- **Fixed Configuration References**: Updated references from `DEFAULT_CONFIG` to `settings.getLists()`
+  - Better integration with settings system
+  - More maintainable code structure
 
 ### New Game Flow and Screens
 - **New Game Screen**: Added dedicated screen for game setup and board configuration
@@ -78,6 +101,16 @@
   - getSettlementPositions() now filters out sea tiles
   - getRoadPositions() now filters out sea tiles
   - Proper resource type checking using settings.sea and settings.deepSea
+- **Boat Position Calculation**: Added getBoatPositions() function
+  - Calculates valid boat positions on sea and deep sea tiles
+  - Enables maritime route planning and placement
+  - Uses same coordinate system as road placement for consistency
+
+### Coordinate System Improvements
+- **Mutable Position Lists**: Updated coordinate functions to return mutable lists
+  - getRoadPositions() now returns list of lists instead of set
+  - getBoatPositions() returns list of lists for consistency
+  - Better integration with game state management
 
 ### Save System Improvements
 - **Null Safety**: Enhanced save/load system with null checks
@@ -111,13 +144,20 @@
   - 7-point polygon representing city structure
   - Different visual from settlements for game clarity
 - **Road Rendering**: Reduced width from 6 to 4 pixels for better aesthetics
-- **Building Preview**: Enhanced preview system with transparent house/city shapes
+- **Boat Rendering**: Added boat polygon shape for maritime routes
+  - 9-point polygon representing boat structure
+  - Enables visual representation of sea-based connections
+- **Building Preview**: Enhanced preview system with transparent house/city/boat shapes
+  - Improved variable naming (settlementPoints, roadPoints, boatPoints)
 
 ### Code Organization
 - **File Renaming**: `mainMenu.py` → `mainMenuScreen.py` for consistency
 - **Color Management**: Centralized button colors in settings configuration
 - **Settings File**: Renamed from `user_settings.json` to `userSettings.json`
 - **Git Configuration**: Added `userSettings.json` to .gitignore
+- **Class Name Fixes**: Fixed uiRect → UIRect typo in colorSettingsScreen.py
+  - Corrected 3 instances of incorrect class name
+  - Ensures proper UI element rendering in color customization
 
 ### Configuration System
 - **New Settings**: Added `buttonColor` and `buttonGreyedOutColor` to config

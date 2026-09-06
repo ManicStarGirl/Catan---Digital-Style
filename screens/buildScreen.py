@@ -19,7 +19,9 @@ class BuildScreen(Screen):
         super().OnEnter()
         self.paused = False
         self.dragging = False
-        self.placing = False
+        self.choosingHex = False
+        self.placingHex = False
+        self.removingHex = False
         self.currentHex = settings.desert
 
         # Center the game board on screen
@@ -43,6 +45,7 @@ class BuildScreen(Screen):
         """Handle game input and update game state"""
 
         for event in pygame.event.get():
+            mousePos = pygame.Vector2(pygame.mouse.get_pos())
             if event.type == pygame.QUIT:
                 self.saveGame()
                 return "quit"
@@ -50,9 +53,18 @@ class BuildScreen(Screen):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_F11:
                     return "fullscreen"
-                if not self.placing:
+                if not self.choosingHex:
                     if event.key == pygame.K_ESCAPE:
                         self.paused = not self.paused
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    self.placingHex = False
+                elif event.button == 2:
+                    self.dragging = False
+                    self.mouseDownPos = None
+                elif event.button == 3:
+                    self.removingHex = False
 
             # When the game is running (not paused)
             if self.paused: # paused
@@ -68,24 +80,35 @@ class BuildScreen(Screen):
                         elif self.quitButton.isClicked(mouse_pos):
                             self.saveGame()
                             return "quit"
-            elif self.placing: # placing
+            elif self.choosingHex: # choosing hex
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    mousePos = pygame.Vector2(pygame.mouse.get_pos())
                     shapeSize = hexSize * self.screen.get_width() / 800  # same formula draw() uses
                     for coord, (name, color) in self.hexLayout.items():
                         x, y = coord
                         pos = pygame.Vector2(self.screen.get_width() * (x+1)/4, self.screen.get_height() * (y+1)/4)
                         if mousePos.distance_to(pos) <= shapeSize:
                             self.currentHex = color
-                            self.placing = False
+                            self.choosingHex = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        self.placing = False
+                        self.choosingHex = False
+            elif self.placingHex:
+                self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
+                if self.currentHex == settings.sea or self.hexCoords not in [(tile.x, tile.y) for tile in self.tileList] or [tile for tile in self.tileList if (tile.x, tile.y) == self.hexCoords and tile.resource == settings.sea]:
+                    if self.currentHex not in settings.getLists()["noNumberTiles"] and self.currentHex != settings.fog:
+                        self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, random.choice(DEFAULT_CONFIG["numberList"])))
+                    elif self.currentHex == settings.fog:
+                        self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, "?"))
+                    else:
+                        self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, None))
+            elif self.removingHex:
+                self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
+                if self.hexCoords in [(tile.x, tile.y) for tile in self.tileList]:
+                    self.tileList = [tile for tile in self.tileList if (tile.x, tile.y) != self.hexCoords]
+                
             else:
                 if event.type == pygame.MOUSEWHEEL:
                     # Zoom in/out, keeping the point under the mouse cursor fixed in place
-                    mousePos = pygame.Vector2(pygame.mouse.get_pos())
-
                     # Where in "world space" the mouse currently points, before the zoom changes
                     worldPos = (mousePos - self.gamePos) / self.gameScale
 
@@ -105,31 +128,32 @@ class BuildScreen(Screen):
                     self.numberSize = pygame.font.Font('assets/fonts/MinionPro-BoldCn.otf', round(textSize * self.gameScale))
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    mousePos = pygame.Vector2(pygame.mouse.get_pos())
                     shapeSize = hexSize * self.screen.get_width() / 800  # same formula draw() uses
                     if event.button == 1:
                         x, y = self.screen.get_width() - shapeSize * 6/4, shapeSize * 5/4
                         pos = pygame.Vector2(x, y)
                         if mousePos.distance_to(pos) <= shapeSize:
-                            self.placing = True
+                            self.choosingHex = True
                         else:
+                            self.placingHex = True
                             self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
-                            if self.hexCoords not in [(tile.x, tile.y) for tile in self.tileList]:
-                                if self.currentHex not in DEFAULT_CONFIG["noNumberTiles"] and self.currentHex != settings.fog:
+                            if self.currentHex == settings.sea or self.hexCoords not in [(tile.x, tile.y) for tile in self.tileList] or [tile for tile in self.tileList if (tile.x, tile.y) == self.hexCoords and tile.resource == settings.sea]:
+                                if self.currentHex not in settings.getLists()["noNumberTiles"] and self.currentHex != settings.fog:
                                     self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, random.choice(DEFAULT_CONFIG["numberList"])))
                                 elif self.currentHex == settings.fog:
                                     self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, "?"))
                                 else:
                                     self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, None))
+                    elif event.button == 2:  # Middle click
                         self.mouseDownPos = event.pos
                         self.offsetX = self.gamePos.x - self.mouseDownPos[0]
                         self.offsetY = self.gamePos.y - self.mouseDownPos[1]
                         self.dragging = True
                     elif event.button == 3:  # Right click
+                        self.removingHex = True
                         self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
                         if self.hexCoords in [(tile.x, tile.y) for tile in self.tileList]:
                             self.tileList = [tile for tile in self.tileList if (tile.x, tile.y) != self.hexCoords]
-                        
 
                 elif event.type == pygame.MOUSEMOTION:
                     if self.dragging:
@@ -137,10 +161,6 @@ class BuildScreen(Screen):
                         self.gamePos.x = mouseX + self.offsetX
                         self.gamePos.y = mouseY + self.offsetY
 
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    if event.button == 1:
-                        self.dragging = False
-                        self.mouseDownPos = None
         
         if not self.paused:
             # Handle keyboard panning
@@ -192,7 +212,7 @@ class BuildScreen(Screen):
             self.mainMenuButton.draw(screen)
             self.quitButton.draw(screen)
 
-        elif self.placing:
+        elif self.choosingHex:
             # Draw placement overlay
             placementRect = UIRect(0, 0, screen.get_width(), screen.get_height(), (0, 0, 0), scalable=(False, None), alpha=settings.pauseAlpha)
             placementRect.draw(screen)
@@ -211,7 +231,7 @@ class BuildScreen(Screen):
 
             shapeSize = hexSize * self.screen.get_width() / 800  # same formula draw() uses
             x, y = self.screen.get_width() - shapeSize * 6/4, shapeSize * 5/4
-            if self.currentHex not in DEFAULT_CONFIG["noNumberTiles"] and self.currentHex != settings.fog:
+            if self.currentHex not in settings.getLists()["noNumberTiles"] and self.currentHex != settings.fog:
                 shownHex = hex(0, 0, tuple(self.currentHex), "?")
                 shownHex.draw(screen, pygame.Vector2(x, y), self.screen.get_width() / 800, numberSize=self.textSize, showToken=True)
             elif self.currentHex == settings.fog:

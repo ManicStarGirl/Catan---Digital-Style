@@ -296,7 +296,7 @@ class GameScreen(Screen):
                     offsetX = screenPos.x - baseSize / 2
                     offsetY = screenPos.y - baseSize / 2
 
-                    housePoints = [
+                    settlementPoints = [
                         (offsetX + 1 * baseSize/6, offsetY + 6 * baseSize/6),
                         (offsetX + 1 * baseSize/6, offsetY + 3 * baseSize/6),
                         (offsetX + 0 * baseSize/6, offsetY + 3 * baseSize/6),
@@ -316,7 +316,7 @@ class GameScreen(Screen):
                         (offsetX + 6 * baseSize/6, offsetY + 6 * baseSize/6),
                     ]
                     
-                    self.drawTransparentPolygon(screen, housePoints, self.currentPlayer[0], settings.hoverAlpha)
+                    self.drawTransparentPolygon(screen, settlementPoints, self.currentPlayer[0], settings.hoverAlpha)
 
             # Draw road preview if close enough
             if closestRoad:
@@ -339,8 +339,20 @@ class GameScreen(Screen):
                     perpX = -dirY
                     perpY = dirX
                     
+                    boatPoints = [
+                        (offsetX + 0   * baseSize/6, offsetY + 4 * baseSize/6),
+                        (offsetX + 3   * baseSize/6, offsetY + 4 * baseSize/6),
+                        (offsetX + 3   * baseSize/6, offsetY + 3 * baseSize/6),
+                        (offsetX + 1.5 * baseSize/6, offsetY + 3 * baseSize/6),
+                        (offsetX + 3.5 * baseSize/6, offsetY + 0 * baseSize/6),
+                        (offsetX + 3.5 * baseSize/6, offsetY + 4 * baseSize/6),
+                        (offsetX + 6   * baseSize/6, offsetY + 4 * baseSize/6),
+                        (offsetX + 5   * baseSize/6, offsetY + 5 * baseSize/6),
+                        (offsetX + 1   * baseSize/6, offsetY + 5 * baseSize/6),
+                    ]
+
                     # Calculate 4 corners
-                    corners = [
+                    roadPoints = [
                         (screenPos.x - dirX * roadLength/2 + perpX * roadWidth/2,
                         screenPos.y - dirY * roadLength/2 + perpY * roadWidth/2),
                         (screenPos.x + dirX * roadLength/2 + perpX * roadWidth/2,
@@ -351,7 +363,7 @@ class GameScreen(Screen):
                         screenPos.y - dirY * roadLength/2 - perpY * roadWidth/2)
                     ]
 
-                    self.drawTransparentPolygon(screen, corners, self.currentPlayer[0], settings.hoverAlpha)
+                    self.drawTransparentPolygon(screen, roadPoints, self.currentPlayer[0], settings.hoverAlpha)
             
         # Draw end turn button
         self.endTurnBorder = UIRect(self.screen.get_width() * 15/16 - self.buttonWidth/8, self.screen.get_height()/16 - self.buttonHeight/4, self.buttonWidth/4, self.buttonHeight/2, self.currentPlayer[0], scalable=(True, "center"), borderRadius=5, thickness=6)
