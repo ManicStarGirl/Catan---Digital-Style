@@ -98,7 +98,7 @@ def hexRound(coords):
 def getSettlementPositions(tileList):
     """Calculate all valid settlement positions (corners) for a given tile list"""
     positions = set()
-    for tile in tileList:
+    for tile in tileList.values():
         if tuple(tile.resource) not in [settings.sea, settings.deepSea]:
             for dx, dy in [(1/3, -1), (-1/3, -1), (-2/3, 0), (2/3, 0), (1/3, 1), (-1/3, 1)]:
                 x = round(tile.x + dx, 2)
@@ -109,7 +109,7 @@ def getSettlementPositions(tileList):
 def getRoadPositions(tileList):
     """Calculate all valid road positions (edges) for a given tile list"""
     positions = set()
-    for tile in tileList:
+    for tile in tileList.values():
         if tuple(tile.resource) not in [settings.sea, settings.deepSea]:
             for dx, dy, angle in [(0, -1, 0), (0.5, -0.5, 60), (0.5, 0.5, 120), (0, 1, 0), (-0.5, 0.5, 60), (-0.5, -0.5, 120)]:
                 x = round(tile.x + dx, 2)
@@ -120,7 +120,7 @@ def getRoadPositions(tileList):
 def getBoatPositions(tileList):
     """Calculate all valid boat positions (edges) for a given tile list"""
     positions = set()
-    for tile in tileList:
+    for tile in tileList.values():
         if tuple(tile.resource) in [settings.sea, settings.deepSea]:
             for dx, dy, angle in [(0, -1, 0), (0.5, -0.5, 60), (0.5, 0.5, 120), (0, 1, 0), (-0.5, 0.5, 60), (-0.5, -0.5, 120)]:
                 x = round(tile.x + dx, 2)

@@ -45,15 +45,11 @@ DEFAULT_CONFIG = {
     "fog": (222, 222, 222),
     # Number tokens / text
     "textSize": 20,  # base font size for number tokens
-    "numberList": [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12]  # standard Catan number token distribution
+    "numberList": [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12],  # standard Catan number token distribution
+    "colorList": ["desert", "sheep", "ore", "wheat", "wood", "brick"],
+    "noNumberTiles": ["desert", "sea", "deepSea"]
 }
 
-DEFAULT_CONFIG["colorList"] = [
-    DEFAULT_CONFIG["desert"], DEFAULT_CONFIG["sheep"], DEFAULT_CONFIG["ore"], DEFAULT_CONFIG["wheat"], DEFAULT_CONFIG["wood"], DEFAULT_CONFIG["brick"]
-]  # tiles that show up in game randomly
-DEFAULT_CONFIG["noNumberTiles"] = [
-    DEFAULT_CONFIG["desert"], DEFAULT_CONFIG["sea"], DEFAULT_CONFIG["deepSea"]
-]  # tiles that don't have numbers
 DEFAULT_CONFIG["numberSize"] = pygame.font.Font('assets/fonts/MinionPro-BoldCn.otf', round(DEFAULT_CONFIG["textSize"] * DEFAULT_CONFIG["gameScale"]))  # font object, scaled to current zoom
 
 class UserSettings:
@@ -109,12 +105,6 @@ class UserSettings:
                 if not key.startswith('_') and key != 'settingsFile'}
         with open(self.settingsFile, 'w') as f:
             json.dump(data, f)
-    
-    def getLists(self):
-        return {
-            "colorList": [self.sheep, self.ore, self.wheat, self.wood, self.brick, self.desert],
-            "noNumberTiles": [self.desert, self.sea, self.deepSea]
-        }
 
 settings = UserSettings()
 

@@ -42,7 +42,9 @@ class ScreenManager:
             try:
                 with open("save.json", "r") as f:
                     savedData = json.load(f)
-                tileList = [hex(*t) for t in savedData["tiles"]]
+                tileList = {}
+                for t in savedData["tiles"]:
+                    tileList[(t[0], t[1])] = hex(*t)
                 if savedData["settlements"] is not None:
                     settlements = [[s[0], s[1], tuple(s[2]) if s[2] else None] for s in savedData["settlements"]]
                 else:

@@ -1,8 +1,8 @@
 from config import settings, numberSize, panSpeed, hexSize, hexWidthRatio, hexHeightRatio, minZoom, maxZoom, textSize
 from screens import Screen
-from ui import UIRect, hex
+from ui import UIRect
 from hex_grid import newTiles
-from coordinates import hexRound, pixelToFractionalHex, getSettlementPositions, getRoadPositions
+from coordinates import getSettlementPositions, getRoadPositions
 import pygame, json, math, random
 
 class GameScreen(Screen):
@@ -213,7 +213,7 @@ class GameScreen(Screen):
         max_y = -self.gamePos.y + gameHeight + buffer
 
         # Draw all visible hex tiles
-        for tile in self.tileList:
+        for tile in self.tileList.values():
             tile_x = tile.x * shapeSize * hexWidthRatio
             tile_y = tile.y * shapeSize * hexHeightRatio
 
@@ -397,7 +397,7 @@ class GameScreen(Screen):
     def saveGame(self):
         """Save current game state to JSON file"""
         save_data = {
-            "tiles": [(t.x, t.y, t.resource, t.number) for t in self.tileList],
+            "tiles": [(t.x, t.y, t.resource, t.number) for t in self.tileList.values()],
             "settlements": self.settlements,
             "roads": self.roads,
             "currentPlayer": self.currentPlayer

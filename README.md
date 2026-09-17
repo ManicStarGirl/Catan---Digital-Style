@@ -26,6 +26,8 @@ a user settings system with JSON persistence, custom board configurations.
 - **Custom board configuration support** through JSON files in boards/ directory
 - **Random terrain assignment** with proper Catan resource distribution (sheep, ore, wheat, wood, brick, desert, gold mine)
 - **Number token placement** with standard Catan dice roll distribution
+- **String-based resource system** - terrain types stored as strings with color lookup at render time
+- **Dictionary-based tile storage** - tiles keyed by (x, y) coordinates for efficient lookups
 - **Interactive camera controls**:
   - Pan with WASD or arrow keys
   - Zoom with mouse wheel (centered on cursor)
@@ -110,8 +112,7 @@ python game.py
   - `player.py` - Player class with resources, buildings, and victory points
   - `game.md` - Game development documentation
 - `boards/` - Custom board configurations (JSON format)
-- `config.py` - Configuration system with UserSettings class for JSON persistence, default constants (colors, zoom settings, hex geometry, UI settings, dice colors, fog of war settings)
-- `config.py` - Configuration system with UserSettings class for JSON persistence, default constants (colors, zoom settings, hex geometry, UI settings, dice colors)
+- `config.py` - Configuration system with UserSettings class for JSON persistence, default constants (colors, zoom settings, hex geometry, UI settings, dice colors, fog of war settings, string-based resource lists)
 - `hex_grid.py` - Hex grid generation algorithms (ring-based, terrain/number assignment)
 - `coordinates.py` - Hex coordinate system conversions (pixel ↔ hex, rounding), settlement/road position calculations (returns mutable lists)
 - `ui.py` - UI components (uiRect class for scalable UI elements with automatic text color detection, hex class for tile rendering)
@@ -130,5 +131,7 @@ python game.py
 - **Performance**: Implements view culling to avoid drawing off-screen hexes
 - **Frame-rate independence**: Movement uses delta time for consistent speed across framerates
 - **Save system**: JSON-based game state persistence including tiles, settlements, roads, and current player with null safety checks
+- **Resource system**: String-based terrain types with dynamic color lookup via getattr(settings, resourceName)
+- **Tile storage**: Dictionary keyed by (x, y) coordinates for O(1) lookup performance
 
 Disclaimer: Ive used AI to write the comments (and this readme), but all of the code comes from me :3

@@ -73,7 +73,7 @@ class UIRect:
 
 class hex:
     """Hexagonal tile class for rendering game board tiles"""
-    def __init__(self, x, y, resource=settings.deepSea, number=None):
+    def __init__(self, x, y, resource="deepSea", number=None):
         self.x = x
         self.y = y
         self.number = number
@@ -98,7 +98,7 @@ class hex:
             # given screen, offset by both the tile's position (x, y) and
             # the board's overall pan offset (gamePos). Vertices go
             # clockwise starting from the rightmost point.
-            pygame.draw.polygon(screen, self.resource, [
+            pygame.draw.polygon(screen, getattr(settings, self.resource), [
                 (shapeSize + realX, 0 + realY) + gamePos, 
                 (0.5 * shapeSize + realX, hexHeightRatio * shapeSize + realY) + gamePos, 
                 (-0.5 * shapeSize + realX, hexHeightRatio * shapeSize + realY) + gamePos, 
@@ -116,7 +116,7 @@ class hex:
             # Vertices here are expressed relative to the small alpha
             # surface itself (not the main screen/gamePos), roughly
             # centered within it.
-            pygame.draw.polygon(alphaSurface, self.resource + (alpha,), [
+            pygame.draw.polygon(alphaSurface, tuple(getattr(settings, self.resource)) + (alpha,), [
                 (alphaSurfaceSize, alphaSurfaceSize/2), 
                 (hexWidthRatio * shapeSize, hexHeightRatio * shapeSize + alphaSurfaceSize/2), 
                 (0.5 * shapeSize, hexHeightRatio * shapeSize + alphaSurfaceSize/2), 

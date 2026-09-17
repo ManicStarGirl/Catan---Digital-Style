@@ -1,4 +1,4 @@
-from config import settings, numberSize, panSpeed, hexSize, hexWidthRatio, hexHeightRatio, minZoom, maxZoom, textSize, DEFAULT_CONFIG
+from config import settings, numberSize, panSpeed, hexSize, hexWidthRatio, hexHeightRatio, minZoom, maxZoom, textSize, DEFAULT_CONFIG, noNumberTiles
 from screens import Screen
 from ui import UIRect, hex
 from coordinates import hexRound, pixelToFractionalHex
@@ -8,11 +8,11 @@ class BuildScreen(Screen):
     """Main game screen for playing Catan"""
     def __init__(self, screenManager, screen):
         super().__init__(screenManager, screen)
-        self.tileList = []
+        self.tileList = {}
         self.hexLayout = {
-            (0, 0): ("desert", settings.desert), (1, 0): ("sheep", settings.sheep), (2, 0): ("ore", settings.ore),
-            (0, 1): ("wheat", settings.wheat),   (1, 1): ("wood", settings.wood),   (2, 1): ("brick", settings.brick),
-            (0, 2): ("goldMine", settings.goldMine), (1, 2): ("sea", settings.sea), (2, 2): ("fog", settings.fog)
+            (0, 0): "desert", (1, 0): "sheep", (2, 0): "ore",
+            (0, 1): "wheat",   (1, 1): "wood",   (2, 1): "brick",
+            (0, 2): "goldMine", (1, 2): "sea", (2, 2): "fog"
         }
 
     def OnEnter(self):
@@ -22,7 +22,7 @@ class BuildScreen(Screen):
         self.choosingHex = False
         self.placingHex = False
         self.removingHex = False
-        self.currentHex = settings.desert
+        self.currentHex = "desert"
 
         # Center the game board on screen
         self.gamePos = pygame.Vector2(self.screen.get_width() / 2, self.screen.get_height() / 2)
@@ -83,28 +83,20 @@ class BuildScreen(Screen):
             elif self.choosingHex: # choosing hex
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     shapeSize = hexSize * self.screen.get_width() / 800  # same formula draw() uses
-                    for coord, (name, color) in self.hexLayout.items():
+                    for coord, name in self.hexLayout.items():
                         x, y = coord
                         pos = pygame.Vector2(self.screen.get_width() * (x+1)/4, self.screen.get_height() * (y+1)/4)
                         if mousePos.distance_to(pos) <= shapeSize:
-                            self.currentHex = color
+                            self.currentHex = name
                             self.choosingHex = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.choosingHex = False
             elif self.placingHex:
-                self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
-                if self.currentHex == settings.sea or self.hexCoords not in [(tile.x, tile.y) for tile in self.tileList] or [tile for tile in self.tileList if (tile.x, tile.y) == self.hexCoords and tile.resource == settings.sea]:
-                    if self.currentHex not in settings.getLists()["noNumberTiles"] and self.currentHex != settings.fog:
-                        self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, random.choice(DEFAULT_CONFIG["numberList"])))
-                    elif self.currentHex == settings.fog:
-                        self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, "?"))
-                    else:
-                        self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, None))
+                self.placeHex(mousePos)
             elif self.removingHex:
                 self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
-                if self.hexCoords in [(tile.x, tile.y) for tile in self.tileList]:
-                    self.tileList = [tile for tile in self.tileList if (tile.x, tile.y) != self.hexCoords]
+                del self.tileList[self.hexCoords]
                 
             else:
                 if event.type == pygame.MOUSEWHEEL:
@@ -136,14 +128,7 @@ class BuildScreen(Screen):
                             self.choosingHex = True
                         else:
                             self.placingHex = True
-                            self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
-                            if self.currentHex == settings.sea or self.hexCoords not in [(tile.x, tile.y) for tile in self.tileList] or [tile for tile in self.tileList if (tile.x, tile.y) == self.hexCoords and tile.resource == settings.sea]:
-                                if self.currentHex not in settings.getLists()["noNumberTiles"] and self.currentHex != settings.fog:
-                                    self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, random.choice(DEFAULT_CONFIG["numberList"])))
-                                elif self.currentHex == settings.fog:
-                                    self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, "?"))
-                                else:
-                                    self.tileList.append(hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, None))
+                            self.placeHex(mousePos)
                     elif event.button == 2:  # Middle click
                         self.mouseDownPos = event.pos
                         self.offsetX = self.gamePos.x - self.mouseDownPos[0]
@@ -152,8 +137,7 @@ class BuildScreen(Screen):
                     elif event.button == 3:  # Right click
                         self.removingHex = True
                         self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
-                        if self.hexCoords in [(tile.x, tile.y) for tile in self.tileList]:
-                            self.tileList = [tile for tile in self.tileList if (tile.x, tile.y) != self.hexCoords]
+                        del self.tileList[self.hexCoords]
 
                 elif event.type == pygame.MOUSEMOTION:
                     if self.dragging:
@@ -194,7 +178,7 @@ class BuildScreen(Screen):
         max_y = -self.gamePos.y + gameHeight + buffer
 
         # Draw all visible hex tiles
-        for tile in self.tileList:
+        for tile in self.tileList.values():
             tile_x = tile.x * shapeSize * hexWidthRatio
             tile_y = tile.y * shapeSize * hexHeightRatio
 
@@ -217,38 +201,48 @@ class BuildScreen(Screen):
             placementRect = UIRect(0, 0, screen.get_width(), screen.get_height(), (0, 0, 0), scalable=(False, None), alpha=settings.pauseAlpha)
             placementRect.draw(screen)
 
-            for coord, (name, color) in self.hexLayout.items():
+            for coord, name in self.hexLayout.items():
                 x, y = self.screen.get_width() * (coord[0]+1)/4, self.screen.get_height() * (coord[1]+1)/4
-                resourceHex = hex(0, 0, tuple(color), name)
+                resourceHex = hex(0, 0, name, name)
                 resourceHex.draw(screen, pygame.Vector2(x, y), self.screen.get_width() / 800, numberSize=self.textSize)
 
         else:
             mousePos = pygame.mouse.get_pos()
             # Highlight the hex currently under the mouse cursor.
             hoveredHexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
-            hoveredHex = hex(hoveredHexCoords[0], hoveredHexCoords[1], tuple(settings.selectorColor))
+            hoveredHex = hex(hoveredHexCoords[0], hoveredHexCoords[1], "selectorColor")
             hoveredHex.draw(screen, self.gamePos, self.gameScale, alpha=settings.selectorAlpha)
 
             shapeSize = hexSize * self.screen.get_width() / 800  # same formula draw() uses
             x, y = self.screen.get_width() - shapeSize * 6/4, shapeSize * 5/4
-            if self.currentHex not in settings.getLists()["noNumberTiles"] and self.currentHex != settings.fog:
-                shownHex = hex(0, 0, tuple(self.currentHex), "?")
+            if self.currentHex not in noNumberTiles and self.currentHex != "fog":
+                shownHex = hex(0, 0, self.currentHex, "?")
                 shownHex.draw(screen, pygame.Vector2(x, y), self.screen.get_width() / 800, numberSize=self.textSize, showToken=True)
-            elif self.currentHex == settings.fog:
-                shownHex = hex(0, 0, tuple(self.currentHex), "?")
+            elif self.currentHex == "fog":
+                shownHex = hex(0, 0, self.currentHex, "?")
                 shownHex.draw(screen, pygame.Vector2(x, y), self.screen.get_width() / 800, numberSize=self.textSize)
             else:
-                shownHex = hex(0, 0, tuple(self.currentHex))
+                shownHex = hex(0, 0, self.currentHex)
                 shownHex.draw(screen, pygame.Vector2(x, y), self.screen.get_width() / 800, numberSize=self.textSize)
         
 
     def saveGame(self):
         """Save current game state to JSON file"""
         save_data = {
-            "tiles": [(t.x, t.y, t.resource, t.number) for t in self.tileList],
+            "tiles": [(t.x, t.y, t.resource, t.number) for t in self.tileList.values()],
             "settlements": None,
             "roads": None,
             "currentPlayer": None
         }
         with open("save.json", "w") as f:
             json.dump(save_data, f)
+
+    def placeHex(self, mousePos):
+        self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
+        if self.currentHex == "sea" or self.hexCoords not in self.tileList or self.tileList[self.hexCoords].resource == "sea":
+            if self.currentHex not in noNumberTiles and self.currentHex != "fog":
+                self.tileList[self.hexCoords] = hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, random.choice(DEFAULT_CONFIG["numberList"]))
+            elif self.currentHex == "fog":
+                self.tileList[self.hexCoords] = hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, "?")
+            else:
+                self.tileList[self.hexCoords] = hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, None)

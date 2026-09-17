@@ -43,6 +43,24 @@
 
 ## Recent Updates (September 2026)
 
+### Resource System Refactoring
+- **String-based Resource System**: Migrated from color tuple storage to string-based resource names
+  - Terrain types now stored as strings (e.g., "sheep", "ore", "wheat", "wood", "brick", "desert", "sea", "deepSea", "fog")
+  - Color lookup performed at render time via getattr(settings, resourceName)
+  - Simplified hex initialization with default string "deepSea" instead of settings.deepSea
+  - Updated hex.draw() to use getattr(settings, self.resource) for dynamic color resolution
+  - Improved maintainability and easier resource type management
+- **Dictionary-based Tile Storage**: Changed tileList from list to dictionary
+  - Tiles now keyed by (x, y) coordinate tuples for O(1) lookup performance
+  - Updated all iteration to use tileList.values()
+  - Simplified tile deletion with del tileList[coords] instead of list comprehensions
+  - Improved save/load system to handle dictionary structure
+  - Better performance for large boards with frequent coordinate lookups
+- **Configuration Simplification**: Moved colorList and noNumberTiles to static string lists in DEFAULT_CONFIG
+  - Removed UserSettings.getLists() method
+  - Direct imports of colorList and noNumberTiles from config
+  - Cleaner separation between configuration and runtime settings
+
 ### Build Screen Enhancements
 - **Continuous Hex Editing**: Added ability to place/remove hexes while holding mouse buttons
   - Left-click and drag to continuously place hexes of selected terrain type
@@ -60,9 +78,10 @@
 - **Sea Tile Overwriting**: Added ability to overwrite sea tiles with other terrain types
   - Enables board editing flexibility for custom map creation
   - Maintains proper number token assignment rules
-- **Fixed Configuration References**: Updated references from `DEFAULT_CONFIG` to `settings.getLists()`
-  - Better integration with settings system
-  - More maintainable code structure
+- **Refactored placeHex Method**: Extracted hex placement logic into dedicated method
+  - Cleaner separation of concerns in build screen
+  - Improved code organization and maintainability
+  - Consistent with string-based resource system
 
 ### New Game Flow and Screens
 - **New Game Screen**: Added dedicated screen for game setup and board configuration
