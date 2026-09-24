@@ -43,6 +43,69 @@
 
 ## Recent Updates (September 2026)
 
+### UI Refactoring and Button System
+- **Unified Button Management**: Created VerstileButton component in components/genericButton.py
+  - Centralized button creation, click handling, and drawing across all screens
+  - Simplified mainMenuScreen.py, newGameScreen.py, and GameScreen.py pause menu
+  - Reduced code duplication and improved maintainability
+- **Screen Navigation Updates**: Changed "new" action to "newGame" in screen manager
+  - Updated newGameScreen.py to include "Back" button for main menu return
+  - Consistent action naming across screen transitions
+- **Button Spacing**: Added self.buttonSpacing to Screen base class
+  - Replaced hardcoded spacing values with scalable buttonSpacing
+  - Improved settings screen layout consistency
+
+### Smart Board Randomization
+- **Intelligent Number Distribution**: Added randomizeBoard() function in hex_grid.py
+  - Prevents adjacent 6/8 numbers (red numbers) for balanced gameplay
+  - Calculates red number percentage and applies smart placement if < 38%
+  - Retries up to 100 times to generate valid board configurations
+  - Uses HEX_DIRECTIONS for adjacent hex position calculations
+- **Parameter Renaming**: Renamed newTiles() parameter from "rings" to "numberOfRings" for clarity
+
+### Road Connection Logic
+- **Automatic Road Position Addition**: Enhanced GameScreen.py road placement
+  - When placing a road, automatically calculates and adds 4 connecting road positions
+  - Calculates offsets based on road angle (0°, 60°, 120°)
+  - Prevents duplicate road positions with existence checks
+  - Simplifies road network building for players
+
+### Color and Text Improvements
+- **Enhanced Text Contrast**: Improved UIRect text color detection in ui.py
+  - Added optional textColor parameter for manual override
+  - Checks contrast between textColor and background color
+  - Automatically inverts text color if too similar (<60 average difference)
+  - Number token colors adapt to tile background:
+    - 6/8 tokens: cyan if background is red-like, otherwise red
+    - Regular numbers: use tile textColor
+    - Invalid/placeholder: yellow if background is blue-like, otherwise blue
+- **Color Settings Refactoring**: Renamed variables in colorSettingsScreen.py for clarity
+  - sliderR/G/B → redSliderColorValue/greenSliderColorValue/blueSliderColorValue
+  - sliderYR/YG/YB → redSliderY/greenSliderY/blueSliderY
+  - maxRGB → maxColorValue
+  - colorPickerScreen → isColorPickerActive
+  - settingButtons → colorSettingButtons
+  - Added setColor() method for programmatic color picker control
+  - Dynamic save button with conflict warnings and color feedback
+
+### Code Organization
+- **File Structure Changes**: Moved files to components/ directory
+  - game/game.md → components/game.md
+  - game/player.py → components/player.py
+  - Created components/genericButton.py for reusable button component
+- **JSON Formatting**: Added indent=2 to all json.dump() calls
+  - config.py, GameScreen.py, buildScreen.py
+  - Pretty-printed JSON for better readability in save files
+
+### Boat Rendering
+- **Improved Boat Polygon**: Enhanced boat rendering in GameScreen.py
+  - Updated baseBoatPoints with better boat shape
+  - Proper rotation based on road angle
+  - Consistent with road rendering orientation
+
+### Git Configuration
+- **Updated .gitignore**: Added .vscode/ directory to ignore
+
 ### Resource System Refactoring
 - **String-based Resource System**: Migrated from color tuple storage to string-based resource names
   - Terrain types now stored as strings (e.g., "sheep", "ore", "wheat", "wood", "brick", "desert", "sea", "deepSea", "fog")

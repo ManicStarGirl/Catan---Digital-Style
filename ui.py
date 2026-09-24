@@ -5,7 +5,7 @@ from config import hexSize, hexWidthRatio, hexHeightRatio, settings
 
 class UIRect:
     """UI rectangle component with optional text and scaling support"""
-    def __init__(self, x, y, width, height, color, text=None, fontSize=0, scalable=(True, "center"), alpha=None, borderRadius=0, thickness=0):
+    def __init__(self, x, y, width, height, color, text=None, fontSize=0, scalable=(True, "center"), alpha=None, borderRadius=0, thickness=0, textColor=None):
         self.x = x
         self.y = y
         self.width = width
@@ -18,10 +18,10 @@ class UIRect:
         self.font = pygame.font.Font('assets/fonts/MinionPro-BoldCn.otf', round(fontSize*settings.uiScale))
         self.borderRadius = borderRadius
         self.thickness = thickness
+        self.textColor = textColor
 
     def draw(self, screen):
         """Draw the UI rectangle with optional transparency and text"""
-        # Create local copies to avoid mutating the original
         x, y, width, height = self.x, self.y, self.width, self.height
         if self.scalable[0]:
             anchor = self.scalable[1]
@@ -42,17 +42,20 @@ class UIRect:
         else:
             pygame.draw.rect(screen, self.color, (x, y, width, height), border_radius=self.borderRadius, width=self.thickness)
         if self.text != None:
-            if (0.299 * self.color[0] + 0.587 * self.color[1] + 0.114 * self.color[2]) >= 128:
-                self.textColor = (0, 0, 0)
+            if self.textColor is None:
+                if (0.299 * self.color[0] + 0.587 * self.color[1] + 0.114 * self.color[2]) >= 128:
+                    self.textColor = (0, 0, 0)
+                else:
+                    self.textColor = (255, 255, 255)
             else:
-                self.textColor = (255, 255, 255)
+                if (abs(self.textColor[0] - self.color[0]) + abs(self.textColor[1] - self.color[1]) + abs(self.textColor[2] - self.color[2])) / 3 < 60:
+                    self.textColor = (255 - self.textColor[0], 255 - self.textColor[1], 255 - self.textColor[2])
             text = self.font.render(self.text, True, self.textColor)
             textRect = text.get_rect(center=(self.x + self.width/2, self.y + self.height/2))
             screen.blit(text, textRect)
 
     def isClicked(self, mousePos):
         """Check if the given mouse position is within this rectangle"""
-        # Create local copies to avoid mutating the original
         x, y, width, height = self.x, self.y, self.width, self.height
         if self.scalable[0]:
             anchor = self.scalable[1]
@@ -81,23 +84,12 @@ class hex:
     
     def draw(self, screen, gamePos, gameScale, numberSize=None, alpha=None, showToken=False):
         """Draw the hex tile with optional transparency and number token"""
-        # transparency is only used for hovering over tiles, which is currently removed
-
-        # Compute the on-screen size of a hex tile after applying global scaling
         shapeSize = hexSize * gameScale
-
-        # the size of the temporary surface used for transparent drawing (generously oversized to fit the hexagon).
         alphaSurfaceSize = shapeSize * 2
-
-        # convert the hex-grid coordinate into a pixel offset from the board's origin.
         realX = shapeSize * hexWidthRatio * self.x
         realY = shapeSize * hexHeightRatio * self.y
 
         if alpha is None:
-            # Opaque path: draw the hexagon's 6 vertices directly onto the
-            # given screen, offset by both the tile's position (x, y) and
-            # the board's overall pan offset (gamePos). Vertices go
-            # clockwise starting from the rightmost point.
             pygame.draw.polygon(screen, getattr(settings, self.resource), [
                 (shapeSize + realX, 0 + realY) + gamePos, 
                 (0.5 * shapeSize + realX, hexHeightRatio * shapeSize + realY) + gamePos, 
@@ -107,15 +99,7 @@ class hex:
                 (0.5 * shapeSize + realX, -hexHeightRatio * shapeSize + realY) + gamePos
             ])
         else:
-            # Transparent path: draw onto a separate per-pixel-alpha
-            # surface first (since pygame.draw doesn't support alpha
-            # blending directly onto the main screen), then blit that
-            # surface onto the given screen at the correct position.
             alphaSurface = pygame.Surface((alphaSurfaceSize, alphaSurfaceSize), pygame.SRCALPHA)
-
-            # Vertices here are expressed relative to the small alpha
-            # surface itself (not the main screen/gamePos), roughly
-            # centered within it.
             pygame.draw.polygon(alphaSurface, tuple(getattr(settings, self.resource)) + (alpha,), [
                 (alphaSurfaceSize, alphaSurfaceSize/2), 
                 (hexWidthRatio * shapeSize, hexHeightRatio * shapeSize + alphaSurfaceSize/2), 
@@ -124,14 +108,8 @@ class hex:
                 (0.5 * shapeSize, -hexHeightRatio * shapeSize + shapeSize), 
                 (hexWidthRatio * shapeSize, -hexHeightRatio * shapeSize + shapeSize)
             ])
-
-            # Blit the alpha surface onto the given screen, positioned so
-            # the hexagon drawn on it lines up with (x, y) plus the
-            # board's pan offset, accounting for the surface being
-            # centered on the tile (hence the `- shapeSize` correction).
             screen.blit(alphaSurface, (realX - shapeSize, realY - shapeSize) + gamePos)
         if self.number is not None:
-            # Draw the token's circular background, centered on the tile.
             if not isinstance(self.number, str) or showToken:
                 pygame.draw.circle(screen, settings.numberTileColor, (realX, realY) + gamePos, shapeSize/3)
                 if (0.299 * settings.numberTileColor[0] + 0.587 * settings.numberTileColor[1] + 0.114 * settings.numberTileColor[2]) >= 128:
@@ -144,20 +122,19 @@ class hex:
                 else:
                     self.textColor = (255, 255, 255)
 
-            # Color the number text based on how "hot" the roll is: 6 and 8
-            # are the most probable non-7 rolls on two dice, so they're
-            # highlighted in red; other valid production numbers (2-12,
-            # excluding 7, which triggers the robber rather than production)
-            # are black; anything else (e.g. a placeholder/invalid value)
-            # falls back to blue.
             if self.number in [6, 8]:
-                tokenNumber = numberSize.render(str(self.number), True, "red")
+                if (abs(settings.numberTileColor[0] - 255) + abs(settings.numberTileColor[1]) + abs(settings.numberTileColor[2])) / 3 < 60:
+                    tokenTextColor = (0, 255, 255)
+                else:
+                    tokenTextColor = (255, 0, 0)
             elif isinstance(self.number, str) or (2 <= self.number <= 12 and self.number != 7):
-                tokenNumber = numberSize.render(str(self.number), True, self.textColor)
+                tokenTextColor = self.textColor
             else:
-                tokenNumber = numberSize.render(str(self.number), True, "blue")
-            
-            # Center the rendered text on the tile and draw it on top of the
-            # circular background.
+                if (abs(settings.numberTileColor[0]) + abs(settings.numberTileColor[1]) + abs(settings.numberTileColor[2] - 255)) / 3 < 60:
+                    tokenTextColor = (255, 255, 0)
+                else:
+                    tokenTextColor = (0, 0, 255)
+
+            tokenNumber = numberSize.render(str(self.number), True, tokenTextColor)
             numberRect = tokenNumber.get_rect(center=(realX, realY) + gamePos)
             screen.blit(tokenNumber, numberRect)

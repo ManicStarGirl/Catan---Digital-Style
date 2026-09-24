@@ -1,7 +1,7 @@
 from screens import Screen
-from ui import UIRect
-import pygame, json
+import pygame
 from config import settings
+from components.genericButton import VerstileButton
 
 class NewGame(Screen):
     """Game options screen"""
@@ -10,10 +10,13 @@ class NewGame(Screen):
 
     def OnEnter(self):
         super().OnEnter()
+        self.buttonGroup = VerstileButton(self.screen, self.buttonWidth, self.buttonHeight, self.fontSize)
+
         # Recalculate buttons with current screen size
-        self.singleplayerButton  = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*3/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor,          "Singleplayer",   self.fontSize, (True, "center"), borderRadius=10)
-        self.passAndPlayButton   = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*4/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonGreyedOutColor, "Pass and Play",  self.fontSize, (True, "center"), borderRadius=10)
-        self.buildButton         = UIRect(self.screen.get_width()/2 - self.buttonWidth/2, self.screen.get_height()*5/8 - self.buttonHeight/2, self.buttonWidth, self.buttonHeight, settings.buttonColor,          "Build",          self.fontSize, (True, "center"), borderRadius=10)
+        self.buttonGroup.createButton("singleplayer", self.screen.get_height()*5/16,  settings.buttonColor,          "Singleplayer")
+        self.buttonGroup.createButton("passAndPlay",  self.screen.get_height()*7/16,  settings.buttonGreyedOutColor, "Pass and Play")
+        self.buttonGroup.createButton("build",        self.screen.get_height()*9/16,  settings.buttonColor,          "Build")
+        self.buttonGroup.createButton("mainMenu",     self.screen.get_height()*11/16, settings.buttonColor,          "Back")
 
     def OnExit(self):
         pass
@@ -32,17 +35,11 @@ class NewGame(Screen):
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
-                    mouse_pos = pygame.mouse.get_pos()
-                    if self.singleplayerButton.isClicked(mouse_pos):
-                        return "singleplayer"
-                    if self.passAndPlayButton.isClicked(mouse_pos):
-                        return "passandplay"
-                    if self.buildButton.isClicked(mouse_pos):
-                        return "build"
+                    action = self.buttonGroup.handleClick(pygame.mouse.get_pos())
+                    if action:
+                        return action
 
     def Draw(self, screen):
-        """Draw the main menu screen"""
+        """Draw the new game screen"""
         screen.fill(self.background)
-        self.singleplayerButton.draw(screen)
-        self.passAndPlayButton.draw(screen)
-        self.buildButton.draw(screen)
+        self.buttonGroup.draw(screen)

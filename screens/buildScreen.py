@@ -235,7 +235,7 @@ class BuildScreen(Screen):
             "currentPlayer": None
         }
         with open("save.json", "w") as f:
-            json.dump(save_data, f)
+            json.dump(save_data, f, indent=2)
 
     def placeHex(self, mousePos):
         self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))

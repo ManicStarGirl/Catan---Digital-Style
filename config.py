@@ -104,7 +104,7 @@ class UserSettings:
         data = {key: value for key, value in self.__dict__.items() 
                 if not key.startswith('_') and key != 'settingsFile'}
         with open(self.settingsFile, 'w') as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=2)
 
 settings = UserSettings()
 

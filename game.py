@@ -35,7 +35,7 @@ class ScreenManager:
         if screenName == "mainMenu":
             self.currentScreen = MainMenu(self, screen)
             self.currentScreen.OnEnter()
-        elif screenName == "new":
+        elif screenName == "newGame":
             self.currentScreen = NewGame(self, screen)
             self.currentScreen.OnEnter()
         elif screenName == "continue":

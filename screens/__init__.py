@@ -31,6 +31,7 @@ class Screen:
         self.buttonHeight = self.screen.get_height() / 10
         self.fontSize = self.screen.get_height() / 20
         self.scrollDistance = 0
+        self.buttonSpacing = int(self.screen.get_height()/40)
     
     def OnExit(self):
         """Called when screen is exited - cleanup can be done here"""

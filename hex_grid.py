@@ -4,6 +4,9 @@ from ui import hex
 
 # Module for generating hexagonal grid layouts and tile configurations
 
+# Hex directions for adjacent tile calculations
+HEX_DIRECTIONS = [(1, 1), (1, -1), (0, -2), (-1, -1), (-1, 1), (0, 2)]
+
 def hexRing(center, radius):
     """
     Return the coordinates of every hex cell forming a ring at a given
@@ -21,34 +24,18 @@ def hexRing(center, radius):
         around the ring one edge at a time. Returns an empty list when
         radius == 0 (a ring of radius 0 has no surrounding cells).
     """
-    # The six neighbor directions in doubled hex coordinates, ordered
-    # so that consecutive entries correspond to consecutive edges of
-    # the ring (i.e. turning by one hex-side each time).
-    HEX_DIRECTIONS = [(1, 1), (1, -1), (0, -2), (-1, -1), (-1, 1), (0, 2)]
-
-    # A ring of radius 0 is just the center itself, and the walk below
-    # isn't meaningful for it, so bail out early.
     if radius == 0:
         return []
 
     cx, cy = center
 
-    # Start at the hex `radius` steps away from center in the first
-    # direction (HEX_DIRECTIONS[0]). This is the "top" corner of the
-    # ring and the starting point for the walk around its perimeter.
     x = cx + HEX_DIRECTIONS[0][0] * radius
     y = cy + HEX_DIRECTIONS[0][1] * radius
 
-    # Reorder the directions so the walk starts from the direction
-    # "two steps around" from the starting corner. Each direction is
-    # then used to walk along one edge of the ring toward the next
-    # corner.
     walkDirs = HEX_DIRECTIONS[2:] + HEX_DIRECTIONS[:2]
 
     results = []
     for dx, dy in walkDirs:
-        # Walk `radius` hexes along the current edge, recording each
-        # cell visited before moving to the next edge/direction.
         for _ in range(radius):
             results.append((x, y))
             x += dx
@@ -74,53 +61,112 @@ def hexGrid(center, numRings):
         each successive ring (radius 1, 2, ..., numRings), each ring's
         cells ordered by walking around its perimeter.
     """
-    # The grid always includes the center hex itself.
     tiles = [center]
 
-    # Build the grid outward one ring at a time, from radius 1 up to
-    # numRings, appending each ring's cells to the result.
     for r in range(1, numRings + 1):
         tiles.extend(hexRing(center, r))
 
     return tiles
 
-def newTiles(rings):
+def newTiles(numberOfRings):
     """
     Generate a randomized set of hex tiles for a board built from
     concentric rings around the origin, assigning a random resource
-    color and number to every tile except the center, which is always
-    the desert.
-
-    Relies on the following names being defined elsewhere in scope:
-        random (module): A random-number module
-            used to pick colors/numbers via `random.choice`.
-        colorList (list): Pool of possible resource colors to assign
-            to non-desert tiles.
-        numberList (list): Pool of possible numbers (e.g. dice-roll
-            values) to assign to non-desert tiles.
-        desert (Any): The color/type value used for the center tile.
+    color and number to every tile.
 
     Args:
-        rings (int): Number of rings to generate around the center
-            hex, passed straight through to hexGrid.
+        numberOfRings (int): Number of rings to generate around the center hex.
 
     Returns:
-        list[tuple[tuple[int, int], Any, Any]]: One entry per tile in
-        the grid, each a tuple of:
-            - (x, y): the tile's doubled hex coordinates,
-            - color: a random entry from colorList, or `desert` for
-              the center tile,
-            - number: a random entry from numberList, or None for the
-              center tile.
+        dict: Dictionary mapping (x, y) coordinates to hex objects.
     """
     tileList = {}
 
-    # Walk every hex position in the grid (center + all requested rings).
-    for tile in hexGrid((0, 0), rings):
+    for tile in hexGrid((0, 0), numberOfRings):
         tileX, tileY = tile[0], tile[1]
-        # Center tile is always desert; every other tile gets a random resource color. 
         color = random.choice(colorList) #if tile != (0, 0) else "desert"
-        # Desert, sea, and deep sea tiles don't get a number token.
-        # (Could have more tiles if noNumberTiles is edited.)
         tileList[tile] = hex(tileX, tileY, color, "?" if color == "fog" else random.choice(numberList) if color not in noNumberTiles else None)
     return tileList
+
+def randomizeBoard(board):
+    """
+    Randomize tile colors and numbers on an existing board while preventing
+    adjacent 6/8 numbers if the red number percentage is below 38%.
+
+    Args:
+        board: Dictionary of hex objects keyed by position.
+
+    Returns:
+        dict: New randomized board configuration.
+    """
+    totalTiles = []
+    numberList = []
+    tilePositions = []
+    totalNumbers = 0
+    totalRedNumbers = 0
+
+    for tile in board:
+        totalTiles.append(tile.color)
+        if tile.number is not None:
+            numberList.append(tile.number)
+            totalNumbers += 1
+            if tile.number in [6, 8]:
+                totalRedNumbers += 1
+        tilePositions.append((tile.x, tile.y))
+    
+    redNumbersPercent = totalRedNumbers / totalNumbers * 100
+
+    def hasAdjacentRedNumber(pos, tileList):
+        """Check if any adjacent tile has a 6 or 8"""
+        for dx, dy in HEX_DIRECTIONS:
+            neighbor = (pos[0] + dx, pos[1] + dy)
+            if neighbor in tileList:
+                neighborNumber = tileList[neighbor].number
+                if neighborNumber in [6, 8]:
+                    return True
+        return False
+
+    if redNumbersPercent < 38:
+        maxRetries = 100
+        for _ in range(maxRetries):
+            tileList = {}
+            tilesCopy = totalTiles.copy()
+            numbersCopy = numberList.copy()
+
+            for position in tilePositions:
+                color = random.choice(tilesCopy)
+                tilesCopy.remove(color)
+                if color == "desert":
+                    number = None
+                else:
+                    attempts = 0
+                    while attempts < 100:
+                        number = random.choice(numbersCopy)
+                        if number in [6, 8] and hasAdjacentRedNumber(position, tileList):
+                            attempts += 1
+                            continue
+                        break
+                    if attempts >= 100:
+                        break
+                    numbersCopy.remove(number)
+                
+                tileList[position] = hex(position[0], position[1], color, number)
+            else:
+                return tileList
+        
+        print(f"Failed to generate valid board after {maxRetries} attempts")
+        return tileList
+    else:
+        tileList = {}
+        tilesCopy = totalTiles.copy()
+        numbersCopy = numberList.copy()
+        for position in tilePositions:
+            color = random.choice(tilesCopy)
+            tilesCopy.remove(color)
+            if color == "desert":
+                number = None
+            else:
+                number = random.choice(numbersCopy)
+                numbersCopy.remove(number)
+            tileList[position] = hex(position[0], position[1], color, number)
+        return tileList

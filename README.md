@@ -22,10 +22,12 @@ a user settings system with JSON persistence, custom board configurations.
 ## Features
 
 - **Screen management system** with main menu, new game, build, and game screens
+- **Unified button system** with VerstileButton component for consistent UI across all screens
 - **Procedural hex grid generation** using ring-based spiral algorithm
 - **Custom board configuration support** through JSON files in boards/ directory
 - **Random terrain assignment** with proper Catan resource distribution (sheep, ore, wheat, wood, brick, desert, gold mine)
 - **Number token placement** with standard Catan dice roll distribution
+- **Smart board randomization** that prevents adjacent 6/8 numbers (red numbers) for balanced gameplay
 - **String-based resource system** - terrain types stored as strings with color lookup at render time
 - **Dictionary-based tile storage** - tiles keyed by (x, y) coordinates for efficient lookups
 - **Interactive camera controls**:
@@ -38,6 +40,7 @@ a user settings system with JSON persistence, custom board configurations.
   - Initial placement phase: first 2 settlements can be placed anywhere valid
   - After initial placement: settlements must be adjacent to your own road network
   - Road placement must be adjacent to your own settlements or existing roads (road chaining)
+  - Automatically adds adjacent road positions when placing roads for easier network building
   - Players can only remove their own buildings
   - Sea and deep sea tiles excluded from settlement/road building positions
 - **Multi-player turn system** with player color cycling
@@ -108,7 +111,8 @@ python game.py
   - `GameScreen.py` - Game screen with hex grid, camera controls, settlement/road placement with Catan rules, player turn system, animated dice rolling, and pause system
   - `settingsScreen.py` - Dynamic settings screen with real-time modification and color settings navigation
   - `colorSettingsScreen.py` - Color customization screen for UI elements
-- `game/` - Game logic and data
+- `components/` - Reusable game components
+  - `genericButton.py` - VerstileButton class for unified button management across screens
   - `player.py` - Player class with resources, buildings, and victory points
   - `game.md` - Game development documentation
 - `boards/` - Custom board configurations (JSON format)
@@ -126,11 +130,15 @@ python game.py
 - **Boat positioning**: Special coordinate calculation for maritime routes on sea and deep sea tiles
 - **Rendering**: Pointy-topped hexagons with proper aspect ratio (3:2 width, √3/2 height)
 - **Settlement rendering**: House-shaped polygons instead of simple squares for better visual representation
+- **Boat rendering**: Rotated polygon shapes for maritime routes with proper orientation
 - **Smart text color detection**: Automatic contrast-based text color for number tokens using luminance formula
+  - Checks contrast with background and inverts text color if too similar (<60 difference)
+  - Number token colors adapt to tile background (cyan/red for 6/8, yellow/blue for others)
 - **Fog of war support**: Dynamic token visibility with "?" placeholders and conditional rendering
 - **Performance**: Implements view culling to avoid drawing off-screen hexes
 - **Frame-rate independence**: Movement uses delta time for consistent speed across framerates
 - **Save system**: JSON-based game state persistence including tiles, settlements, roads, and current player with null safety checks
+  - Pretty-printed JSON output (indent=2) for better readability
 - **Resource system**: String-based terrain types with dynamic color lookup via getattr(settings, resourceName)
 - **Tile storage**: Dictionary keyed by (x, y) coordinates for O(1) lookup performance
 
