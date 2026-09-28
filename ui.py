@@ -90,14 +90,17 @@ class hex:
         realY = shapeSize * hexHeightRatio * self.y
 
         if alpha is None:
-            pygame.draw.polygon(screen, getattr(settings, self.resource), [
+            corners = [
                 (shapeSize + realX, 0 + realY) + gamePos, 
                 (0.5 * shapeSize + realX, hexHeightRatio * shapeSize + realY) + gamePos, 
                 (-0.5 * shapeSize + realX, hexHeightRatio * shapeSize + realY) + gamePos, 
                 (-1 * shapeSize + realX, 0 + realY) + gamePos, 
                 (-0.5 * shapeSize + realX, -hexHeightRatio * shapeSize + realY) + gamePos, 
                 (0.5 * shapeSize + realX, -hexHeightRatio * shapeSize + realY) + gamePos
-            ])
+            ]
+            pygame.draw.polygon(screen, getattr(settings, self.resource), corners)
+            if gameScale > 0.6 and getattr(settings, self.resource) not in [settings.sea, settings.deepSea]: # skip borders on water tiles, and when zoomed out too far
+                pygame.draw.polygon(screen, settings.hexBorderColor, corners, width=3)
         else:
             alphaSurface = pygame.Surface((alphaSurfaceSize, alphaSurfaceSize), pygame.SRCALPHA)
             pygame.draw.polygon(alphaSurface, tuple(getattr(settings, self.resource)) + (alpha,), [

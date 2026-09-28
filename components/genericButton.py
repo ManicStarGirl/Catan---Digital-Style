@@ -7,6 +7,7 @@ class VerstileButton:
         self.buttonHeight = buttonHeight
         self.fontSize = fontSize
         self.buttons = {}
+        self.buttonRadius = int(self.buttonHeight//8)
     
     def createButton(self, name, yPos, color, text):
         """Create a button and store it by name"""
@@ -19,7 +20,7 @@ class VerstileButton:
             text,
             self.fontSize,
             (True, "center"),
-            borderRadius=10
+            borderRadius=self.buttonRadius
         )
     
     def handleClick(self, mouse_pos):

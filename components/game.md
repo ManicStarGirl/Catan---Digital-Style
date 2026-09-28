@@ -42,6 +42,27 @@
 - ✅ Smart text color detection for optimal readability
 
 ## Recent Updates (September 2026)
+### Hex Border Rendering
+- Added `hexBorderColor` setting; hex tiles now draw an outline
+  border, skipped on sea/deep sea tiles and hidden when zoomed out
+  past gameScale 0.6
+
+### Build Screen Fix
+- Added `removeHex()` helper in buildScreen.py; guards against
+  deleting a hex that doesn't exist (previously could raise KeyError)
+
+### UI Consistency
+- Standardized button corner radius to `buttonHeight // 8` across
+  settingsScreen, colorSettingsScreen, and VerstileButton
+- colorSettingsScreen slider Y-positions and preview-rect height are
+  now derived from slider spread instead of hardcoded screen fractions
+- Added `hexBorderColor` to the color settings screen's editable list
+  and its "Terrain Tiles" conflict group, with an exception so it
+  doesn't flag conflicts against sea/deepSea
+
+### Housekeeping
+- Removed tracked `.vscode/settings.json`
+- Added `test.py` and `.venv/` to `.gitignore`
 
 ### UI Refactoring and Button System
 - **Unified Button Management**: Created VerstileButton component in components/genericButton.py

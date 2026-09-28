@@ -24,6 +24,7 @@ DEFAULT_CONFIG = {
     "selectorColor": (255, 255, 255),         # tile selection highlight color
     "selectorAlpha": 85,                      # tile selection highlight (color, transparency)
     "numberTileColor": (212, 205, 142),       # background color for number tokens
+    "hexBorderColor": (68, 34, 3),            # color for the hex border
     "uiScale": 1.0,                           # UI scale factor
     "pauseAlpha": 128,                        # transparency for pause overlay (out of 255)
     "diceRedColor": (193, 33, 39),            # catan red color
@@ -68,6 +69,7 @@ class UserSettings:
         self.selectorColor =   DEFAULT_CONFIG["selectorColor"]
         self.selectorAlpha =   DEFAULT_CONFIG["selectorAlpha"]
         self.numberTileColor = DEFAULT_CONFIG["numberTileColor"]
+        self.hexBorderColor =  DEFAULT_CONFIG["hexBorderColor"]
         self.uiScale =         DEFAULT_CONFIG["uiScale"]
         self.pauseAlpha =      DEFAULT_CONFIG["pauseAlpha"]
         self.diceRedColor =    DEFAULT_CONFIG["diceRedColor"]

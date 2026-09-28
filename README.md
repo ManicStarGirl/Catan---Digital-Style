@@ -128,7 +128,7 @@ python game.py
 - **Settlement validation**: Enforces Catan spacing rules (1 position of space between settlements) to prevent adjacent settlements
 - **Sea tile handling**: Excludes sea and deep sea tiles from valid building positions, but supports boat placement on water tiles
 - **Boat positioning**: Special coordinate calculation for maritime routes on sea and deep sea tiles
-- **Rendering**: Pointy-topped hexagons with proper aspect ratio (3:2 width, √3/2 height)
+- **Rendering**: Flat-topped hexagons with proper aspect ratio with borders
 - **Settlement rendering**: House-shaped polygons instead of simple squares for better visual representation
 - **Boat rendering**: Rotated polygon shapes for maritime routes with proper orientation
 - **Smart text color detection**: Automatic contrast-based text color for number tokens using luminance formula

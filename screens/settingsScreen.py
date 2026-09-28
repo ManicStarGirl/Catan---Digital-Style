@@ -12,6 +12,7 @@ class Settings(Screen):
         self.scrollDistance = 0
         self.numButtons = 1
         self.settingButtons = []
+        self.buttonRadius = int(self.buttonHeight//8)
 
         for attr in dir(settings):
             if not attr.startswith('_') and attr != 'settingsFile':
@@ -30,7 +31,7 @@ class Settings(Screen):
                         "-", 
                         self.fontSize, 
                         (True, "center"), 
-                        borderRadius=10
+                        borderRadius=self.buttonRadius
                     )
                     self.settingButtons.append(minusButton)
                     
@@ -43,7 +44,7 @@ class Settings(Screen):
                         f"{attr}: {value}", 
                         self.fontSize, 
                         (True, "center"), 
-                        borderRadius=10
+                        borderRadius=self.buttonRadius
                     )
                     self.settingButtons.append(displayButton)
                     
@@ -56,7 +57,7 @@ class Settings(Screen):
                         "+", 
                         self.fontSize, 
                         (True, "center"), 
-                        borderRadius=10
+                        borderRadius=self.buttonRadius
                     )
                     self.settingButtons.append(plusButton)
                     
@@ -71,7 +72,7 @@ class Settings(Screen):
             "Color Settings", 
             self.fontSize, 
             (True, "center"), 
-            borderRadius=10
+            borderRadius=self.buttonRadius
         )
         self.settingButtons.append(colorButton)
         self.numButtons += 1
@@ -85,7 +86,7 @@ class Settings(Screen):
             "Done", 
             self.fontSize, 
             (True, "center"), 
-            borderRadius=10
+            borderRadius=self.buttonRadius
         )
         self.settingButtons.append(doneButton)
             

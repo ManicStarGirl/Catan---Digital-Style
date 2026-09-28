@@ -3,6 +3,8 @@ __pycache__/
 save.json
 diff.txt
 testing.py
+test.py
 userSettings.json
 boards/custom/
 .vscode/
+.venv/

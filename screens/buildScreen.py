@@ -95,8 +95,7 @@ class BuildScreen(Screen):
             elif self.placingHex:
                 self.placeHex(mousePos)
             elif self.removingHex:
-                self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
-                del self.tileList[self.hexCoords]
+                self.removeHex(mousePos)
                 
             else:
                 if event.type == pygame.MOUSEWHEEL:
@@ -136,8 +135,7 @@ class BuildScreen(Screen):
                         self.dragging = True
                     elif event.button == 3:  # Right click
                         self.removingHex = True
-                        self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
-                        del self.tileList[self.hexCoords]
+                        self.removeHex(mousePos)
 
                 elif event.type == pygame.MOUSEMOTION:
                     if self.dragging:
@@ -238,6 +236,11 @@ class BuildScreen(Screen):
             json.dump(save_data, f, indent=2)
 
     def placeHex(self, mousePos):
+        """Place (or overwrite) a hex tile of the currently selected terrain at the given screen position.
+
+        Sea tiles are always overwritable; other tiles are only placed on empty grid cells.
+        Assigns a random number token, "?" for fog, or None depending on terrain type.
+        """
         self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
         if self.currentHex == "sea" or self.hexCoords not in self.tileList or self.tileList[self.hexCoords].resource == "sea":
             if self.currentHex not in noNumberTiles and self.currentHex != "fog":
@@ -246,3 +249,9 @@ class BuildScreen(Screen):
                 self.tileList[self.hexCoords] = hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, "?")
             else:
                 self.tileList[self.hexCoords] = hex(self.hexCoords[0], self.hexCoords[1], self.currentHex, None)
+
+    def removeHex(self, mousePos):
+        """Remove the hex tile at the given screen position, if one exists there."""
+        self.hexCoords = hexRound(pixelToFractionalHex(self.gamePos, mousePos, hexSize * self.gameScale))
+        if self.hexCoords in self.tileList:
+            del self.tileList[self.hexCoords]

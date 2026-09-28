@@ -30,9 +30,9 @@ class ColorSettings(Screen):
         self.sliderWidth = int(self.screen.get_width() * 0.6)
         self.sliderHeight = int(self.screen.get_height() * 0.05)
         self.sliderX = self.screen.get_width()//2 - self.sliderWidth//2
-        self.redSliderY = int(self.screen.get_height() * 3/8)
-        self.greenSliderY = int(self.screen.get_height() * 4/8)
-        self.blueSliderY = int(self.screen.get_height() * 5/8)
+        self.redSliderY = int(self.screen.get_height() * 23/80)
+        self.greenSliderY = int(self.screen.get_height() * 33/80)
+        self.blueSliderY = int(self.screen.get_height() * 43/80)
         self.handleWidth = int(self.screen.get_width() * 0.02)
         self.handleHeight = int(self.screen.get_height() * 0.07)
         self.redHandleX = int(self.sliderX + (self.redSliderColorValue / self.maxColorValue) * (self.sliderWidth - self.handleWidth))
@@ -41,7 +41,7 @@ class ColorSettings(Screen):
 
         # Button dimensions
         self.buttonX = int(self.screen.get_width()/2 - self.buttonWidth/2)
-        self.buttonRadius = int(self.buttonHeight//10)
+        self.buttonRadius = int(self.buttonHeight//8)
 
         self.redHandleRect =   UIRect(self.redHandleX,   self.redSliderY,   self.handleWidth, self.handleHeight, settings.deepSea)
         self.greenHandleRect = UIRect(self.greenHandleX, self.greenSliderY, self.handleWidth, self.handleHeight, settings.deepSea)
@@ -58,7 +58,7 @@ class ColorSettings(Screen):
 
         # Calculate position for reset/save buttons
         self.colorPickerX = int(self.sliderX - self.screen.get_width() * 0.05)
-        self.resetAndSaveButtonY = int(self.redSliderY - self.screen.get_height() * 0.1) + int(self.screen.get_height() * 0.5) + self.buttonSpacing
+        self.resetAndSaveButtonY = int(self.redSliderY - self.screen.get_height() * 0.1) + int(self.blueSliderY - self.redSliderY + self.sliderHeight + self.screen.get_height() * 0.2) + self.buttonSpacing
         self.resetAndSaveButtonWidth = (int(self.sliderWidth + self.screen.get_width() * 0.1) - self.buttonSpacing)/2
 
         for settingName in dir(settings):
@@ -74,7 +74,7 @@ class ColorSettings(Screen):
                         settingValue, 
                         settingName, 
                         self.fontSize, 
-                        (True, "center"), 
+                        (True, "center"),
                         borderRadius=self.buttonRadius
                     )
                     self.colorSettingButtons.append(button)
@@ -285,10 +285,10 @@ class ColorSettings(Screen):
                 int(self.sliderX - self.screen.get_width() * 0.05),
                 int(self.redSliderY - self.screen.get_height() * 0.1),
                 int(self.sliderWidth + self.screen.get_width() * 0.1),
-                int(self.screen.get_height() * 0.5),
+                int(self.blueSliderY - self.redSliderY + self.sliderHeight + self.screen.get_height() * 0.2),
                 currentColor,
                 scalable=(False, None),
-                borderRadius=int(self.buttonHeight//2)
+                borderRadius=self.buttonRadius
             )
             previewRect.draw(screen)
             
@@ -316,6 +316,7 @@ class ColorSettings(Screen):
             self.saveButton.text = self.saveText
             self.saveButton.font = pygame.font.Font('assets/fonts/MinionPro-BoldCn.otf', round(self.warningFontSize*settings.uiScale))
             self.saveButton.textColor = self.saveTextColor
+            self.resetButton.textColor = None
 
             self.resetButton.draw(screen)
             self.saveButton.draw(screen)
@@ -359,7 +360,7 @@ class ColorSettings(Screen):
         # Define color groups that actually interact with each other
         colorGroups = {
             'Dice & Background': ['diceRedColor', 'diceYellowColor', 'deepSea'],
-            'Terrain Tiles': ['desert', 'sheep', 'ore', 'wheat', 'wood', 'brick', 'goldMine', 'sea', 'deepSea', 'fog'],
+            'Terrain Tiles': ['desert', 'sheep', 'ore', 'wheat', 'wood', 'brick', 'goldMine', 'sea', 'deepSea', 'fog', 'hexBorderColor'],
             'UI Elements': ['buttonColor', 'buttonGreyedOutColor', 'deepSea']
         }
 
@@ -376,7 +377,7 @@ class ColorSettings(Screen):
             if not attr.startswith('_') and attr != 'settingsFile' and attr != currentSettingName and attr in colorsToCheck:
                 value = getattr(settings, attr)
                 if isinstance(value, (tuple, list)) and len(value) == 3:
-                    if set([currentSettingName, attr]) == set(['sea', 'deepSea']):
+                    if set([currentSettingName, attr]) in [set(['sea', 'deepSea']), set(['sea', 'hexBorderColor']), set(['deepSea', 'hexBorderColor'])]:
                         continue
 
                     redDiff = abs(currentColor[0] - value[0])
